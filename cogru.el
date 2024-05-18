@@ -50,9 +50,35 @@
 (defvar cogru-process nil
   "Process to one workspace.")
 
+;;
+;;; Util
+
 (defun cogru-address ()
   "Return the address name."
   (format "http://%s:%s" cogru-host cogru-port))
+
+(defmacro cogru--json-serialize (params)
+  "Serialize json PARAMS."
+  (if (progn (require 'json)
+             (fboundp 'json-serialize))
+      `(json-serialize ,params
+                       :null-object nil
+                       :false-object :json-false)
+    `(let ((json-false :json-false))
+       (json-encode ,params))))
+
+(defun cogru--make-message (params)
+  "Create a CSP message from PARAMS, after encoding it to a JSON string."
+  (let ((body (cogru--json-serialize params)))
+    (concat "Content-Length: "
+            (number-to-string (1+ (string-bytes body)))
+            "\r\n\r\n"
+            body
+            "\n")))
+
+(defun cogru-send (obj)
+  "Send message to the server."
+  (process-send-string cogru-process (cogru--make-message obj)))
 
 (defun cogru--filter (proc data &rest _)
   "Process DATA from PROC."
