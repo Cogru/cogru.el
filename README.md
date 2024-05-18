@@ -8,7 +8,11 @@
 
 ## 🔨 Usage
 
-WIP
+To start connecting to the server:
+
+```
+M-x cogru-start
+```
 
 ## 🛠️ Contribute
 
