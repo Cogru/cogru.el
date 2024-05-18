@@ -37,5 +37,11 @@
   :group 'tool
   :link '(url-link :tag "Repository" "https://github.com/Cogru/cogru.el"))
 
+;;;###autoload
+(defun cogru-start ()
+  "Start from connecting to the server."
+  (interactive)
+  (let ))
+
 (provide 'cogru)
 ;;; cogru.el ends here
