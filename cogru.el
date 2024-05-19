@@ -47,8 +47,16 @@
   :type 'integer
   :group 'cogru)
 
+(defcustom cogru-filter-data-hook nil
+  "Hook run when the data comes in."
+  :type 'hook
+  :group 'cogru)
+
 (defvar cogru-process nil
   "Process to one workspace.")
+
+(defvar cogru-default-directory nil
+  "The default directory for syncing the entire file tree.")
 
 ;;
 ;;; Util
@@ -82,8 +90,8 @@
 
 (defun cogru--filter (proc data &rest _)
   "Process DATA from PROC."
-  ;; TODO: ..
-  )
+  (ic proc data)
+  (run-hook-with-args cogru-filter-data-hook proc data))
 
 ;;;###autoload
 (defun cogru-start ()
@@ -91,28 +99,38 @@
   (interactive)
   (cond
    (cogru-process
-    (user-error "[WARNING] The connection is already established; only one server-client connection is allowed"))
+    (user-error "[WARNING] The connection is already established; only one client-server connection is allowed"))
    (t
-    (let* ((default-addr (cogru-address))
-           (addr (read-string "Host url: " default-addr))
-           (url-info (url-generic-parse-url addr))
-           (host (url-host url-info))
-           (port (url-port url-info)))
-      (message "[INFO] Connecting to %s..." addr)
-      (setq cogru-process
-            (make-network-process :name "*tcp-server-cogru*"
-                                  :buffer "*tcp-server-cogru*"
-                                  :filter #'cogru--filter
-                                  :host host
-                                  :service port))
-      (message "[INFO] Connected to %s" cogru-process)))))
+    (let* ((dir (read-directory-name "Select a directory to start the workspace: "))
+           (files (directory-files default-directory nil directory-files-no-dot-files-regexp nil 1)))
+      (when (or (null files)
+                (and files
+                     (yes-or-no-p "The folder is not empty, you may lose your file and/or corrupt the workspace.
+Ar you sure? ")))
+        (setq cogru-default-directory dir)))
+    (cond (cogru-default-directory
+           (let* ((default-addr (cogru-address))
+                  (addr (read-string "Host url: " default-addr))
+                  (url-info (url-generic-parse-url addr))
+                  (host (url-host url-info))
+                  (port (url-port url-info)))
+             (message "[INFO] Connecting to %s..." addr)
+             (setq cogru-process
+                   (make-network-process :name "*tcp-server-cogru*"
+                                         :buffer "*tcp-server-cogru*"
+                                         :filter #'cogru--filter
+                                         :host host
+                                         :service port))
+             (message "[INFO] Connected to %s" cogru-process)))
+          (t (message "[INFO] Failed to establish workspace"))))))
 
 (defun cogru-stop ()
   "Stop the connection."
   (interactive)
   (cond (cogru-process
          (delete-process cogru-process)
-         (setq cogru-process nil)
+         (setq cogru-process nil
+               cogru-default-directory nil)
          (message "[INFO] Safely disconnected from the server"))
         (t (user-error "[WARNING] No connection is established; this does nothing"))))
 
