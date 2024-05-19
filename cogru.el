@@ -84,14 +84,37 @@
             body
             "\n")))
 
+;;
+;;; Core
+
 (defun cogru-send (obj)
   "Send message to the server."
   (process-send-string cogru-process (cogru--make-message obj)))
 
+(defun cogru--handle (data)
+  "Handle the incoming request DATA."
+  (cogru-send
+   '((method   . "enter")
+     (password . ""))))
+
 (defun cogru--filter (proc data &rest _)
   "Process DATA from PROC."
-  (ic proc data)
-  (run-hook-with-args cogru-filter-data-hook proc data))
+  (run-hook-with-args cogru-filter-data-hook proc data)
+  (cogru--handle data))
+
+(defun cogru--select-workspace ()
+  "Pick a workspace to start collaboration."
+  (setq cogru-default-directory nil)  ; reset
+  (let* ((dir (read-directory-name "Select a directory to start the workspace: "))
+         (files (directory-files default-directory nil directory-files-no-dot-files-regexp nil 1)))
+    (when (or (null files)
+              (and files
+                   (yes-or-no-p "The folder is not empty, you may lose your file and/or corrupt the workspace.
+Ar you sure? ")))
+      (setq cogru-default-directory dir))))
+
+;;
+;;; Entry
 
 ;;;###autoload
 (defun cogru-start ()
@@ -101,13 +124,7 @@
    (cogru-process
     (user-error "[WARNING] The connection is already established; only one client-server connection is allowed"))
    (t
-    (let* ((dir (read-directory-name "Select a directory to start the workspace: "))
-           (files (directory-files default-directory nil directory-files-no-dot-files-regexp nil 1)))
-      (when (or (null files)
-                (and files
-                     (yes-or-no-p "The folder is not empty, you may lose your file and/or corrupt the workspace.
-Ar you sure? ")))
-        (setq cogru-default-directory dir)))
+    (cogru--select-workspace)
     (cond (cogru-default-directory
            (let* ((default-addr (cogru-address))
                   (addr (read-string "Host url: " default-addr))
