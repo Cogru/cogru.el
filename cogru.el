@@ -94,7 +94,8 @@
 (defun cogru--handle (data)
   "Handle the incoming request DATA."
   (cogru-send
-   '((method   . "enter")
+   '((jsonrpc . "2.0")
+     (method   . "enter")
      (password . ""))))
 
 (defun cogru--filter (proc data &rest _)
