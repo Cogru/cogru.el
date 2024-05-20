@@ -65,6 +65,9 @@
   "Return the address name."
   (format "http://%s:%s" cogru-host cogru-port))
 
+;;
+;;; IO
+
 (defmacro cogru--json-serialize (params)
   "Serialize json PARAMS."
   (if (progn (require 'json)
@@ -85,6 +88,15 @@
             "\n")))
 
 ;;
+;;; Packet
+
+(defun cogru-ping ()
+  "Ping the server."
+  (interactive)
+  (cogru-send '((jsonrpc . "2.0")
+                (method   . "ping"))))
+
+;;
 ;;; Core
 
 (defun cogru-send (obj)
@@ -93,15 +105,16 @@
 
 (defun cogru--handle (data)
   "Handle the incoming request DATA."
-  (cogru-send
-   '((jsonrpc . "2.0")
-     (method   . "enter")
-     (password . ""))))
+  )
+
+(defun cogru--process (data)
+  "Decode raw DATA."
+  )
 
 (defun cogru--filter (proc data &rest _)
   "Process DATA from PROC."
   (run-hook-with-args cogru-filter-data-hook proc data)
-  (cogru--handle data))
+  (cogru--process data))
 
 (defun cogru--select-workspace ()
   "Pick a workspace to start collaboration."
