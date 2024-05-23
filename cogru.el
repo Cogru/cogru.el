@@ -6,7 +6,7 @@
 ;; Maintainer: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; URL: https://github.com/Cogru/cogru.el
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "26.1") (msgu "0.1.0"))
 ;; Keywords: convenience cogru
 
 ;; This file is not part of GNU Emacs.
@@ -30,6 +30,8 @@
 ;;
 
 ;;; Code:
+
+(require 'msgu)
 
 (defgroup cogru nil
   "Cogru plugin for real-time collaborative editing."
@@ -93,8 +95,7 @@
 (defun cogru-ping ()
   "Ping the server."
   (interactive)
-  (cogru-send '((jsonrpc . "2.0")
-                (method   . "ping"))))
+  (cogru-send '((method   . "ping"))))
 
 ;;
 ;;; Core
@@ -109,7 +110,7 @@
 
 (defun cogru--process (data)
   "Decode raw DATA."
-  )
+  (ic data))
 
 (defun cogru--filter (proc data &rest _)
   "Process DATA from PROC."
@@ -125,7 +126,7 @@
               (and files
                    (yes-or-no-p "The folder is not empty, you may lose your file and/or corrupt the workspace.
 Ar you sure? ")))
-      (setq cogru-default-directory dir))))
+      (setq cogru-default-directory (expand-file-name dir)))))
 
 ;;
 ;;; Entry
@@ -134,26 +135,29 @@ Ar you sure? ")))
 (defun cogru-start ()
   "Start from connecting to the server."
   (interactive)
-  (cond
-   (cogru-process
-    (user-error "[WARNING] The connection is already established; only one client-server connection is allowed"))
-   (t
-    (cogru--select-workspace)
-    (cond (cogru-default-directory
-           (let* ((default-addr (cogru-address))
-                  (addr (read-string "Host url: " default-addr))
-                  (url-info (url-generic-parse-url addr))
-                  (host (url-host url-info))
-                  (port (url-port url-info)))
-             (message "[INFO] Connecting to %s..." addr)
-             (setq cogru-process
-                   (make-network-process :name "*tcp-server-cogru*"
-                                         :buffer "*tcp-server-cogru*"
-                                         :filter #'cogru--filter
-                                         :host host
-                                         :service port))
-             (message "[INFO] Connected to %s" cogru-process)))
-          (t (message "[INFO] Failed to establish workspace"))))))
+  (msgu-inhibit-log
+    ;; Silently kill the session if the process is already dead.
+    (unless (process-live-p cogru-process) (cogru-stop))
+    (cond
+     (cogru-process
+      (user-error "[WARNING] The connection is already established; only one client-server connection is allowed"))
+     (t
+      (cogru--select-workspace)
+      (cond (cogru-default-directory
+             (let* ((default-addr (cogru-address))
+                    (addr (read-string "Host url: " default-addr))
+                    (url-info (url-generic-parse-url addr))
+                    (host (url-host url-info))
+                    (port (url-port url-info)))
+               (message "[INFO] Connecting to %s..." addr)
+               (setq cogru-process
+                     (make-network-process :name "*tcp-server-cogru*"
+                                           :buffer "*tcp-server-cogru*"
+                                           :filter #'cogru--filter
+                                           :host host
+                                           :service port))
+               (message "[INFO] Connected to [cogru-server:%s %s]" port cogru-default-directory)))
+            (t (message "[INFO] Failed to establish workspace")))))))
 
 (defun cogru-stop ()
   "Stop the connection."
