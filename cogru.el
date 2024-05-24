@@ -123,10 +123,15 @@
 ;;
 ;;; Packet
 
+(defun cogru-test ()
+  "Send test request to the server."
+  (interactive)
+  (cogru-send '((method . "test"))))
+
 (defun cogru-ping ()
   "Ping the server."
   (interactive)
-  (cogru-send '((method   . "ping"))))
+  (cogru-send '((method . "ping"))))
 
 ;;
 ;;; Core
