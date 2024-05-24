@@ -6,7 +6,7 @@
 ;; Maintainer: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; URL: https://github.com/Cogru/cogru.el
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "26.1") (msgu "0.1.0"))
+;; Package-Requires: ((emacs "26.1") (msgu "0.1.0") (s "1.12.0") (ht "2.0"))
 ;; Keywords: convenience cogru
 
 ;; This file is not part of GNU Emacs.
@@ -32,7 +32,10 @@
 ;;; Code:
 
 (require 'cl-lib)
+
 (require 'msgu)
+(require 's)
+(require 'ht)
 
 (defgroup cogru nil
   "Cogru plugin for real-time collaborative editing."
@@ -67,6 +70,10 @@
 ;;
 ;;; Util
 
+(defun cogru-2str (obj)
+  "Convert OBJ to string."
+  (format "%s" obj))
+
 (defun cogru-address ()
   "Return the address name."
   (format "http://%s:%s" cogru-host cogru-port))
@@ -93,6 +100,26 @@
             body
             "\n")))
 
+(defmacro cogru--json-read-buffer ()
+  "Read json from the current buffer."
+  (if (progn
+        (require 'json)
+        (fboundp 'json-parse-buffer))
+      `(json-parse-buffer :object-type 'hash-table
+                          :null-object nil
+                          :false-object nil)
+    `(let ((json-array-type 'vector)
+           (json-object-type 'hash-table)
+           (json-false nil))
+       (json-read))))
+
+(defun cogru--json-read-from-string (json-string)
+  "Read JSON-STRING to JSON object."
+  (with-temp-buffer
+    (insert json-string)
+    (goto-char (point-min))
+    (cogru--json-read-buffer)))
+
 ;;
 ;;; Packet
 
@@ -116,34 +143,51 @@
 
 (defun cogru--handle (data)
   "Handle the incoming request DATA."
+  (ic "output:" data)
+  (let ((data (cogru--json-read-from-string data)))
+    (ic data))
   )
 
 (defun cogru--content-length (data)
   "Return the content length in number from DATA."
   (when-let* ((splitted (split-string data "\r\n"))
-              (len (length splitted))
+              (len (length splitted))  ; array size
               ((<= 3 len))
               (contnet-length (cl-first splitted))
-              (rest           (cl-third splitted))
-              (contnet-length (string-replace "Content-Length: " "" contnet-length)))
-    (cons (string-to-number contnet-length) rest)))
+              (content-body   (cl-third splitted))
+              (contnet-length (s-replace "Content-Length: " "" contnet-length)))
+    (cons (string-to-number contnet-length) content-body)))
+
+(defun cogru--substring (data &optional from to)
+  "Like function `substring' but in bytes.
+
+The arguments DATA is the string data; and FROM and TO are argumenets are
+string position but in bytes."
+  (with-temp-buffer
+    (insert data)
+    (set-buffer-multibyte nil)
+    (let ((from (or from (1- (point-min))))
+          (to   (or to   (1- (point-max)))))
+      (decode-coding-region (1+ from) (1+ to) 'utf-8 t))))
 
 (defun cogru--process (data)
   "Decode raw DATA."
   (setq cogru--data (concat cogru--data data))  ; pile up the data
-  (when-let* ((content-info    (cogru--content-length data))
+  (unless (string-match-p "\r\n" cogru--data)
+    (setq cogru--data (s-replace "\n" "\r\n" cogru--data)))
+  (when-let* ((content-info    (cogru--content-length cogru--data))
               (content-length  (car content-info))
-              (rest            (cdr content-info))
-              (received-length (string-bytes rest))
+              (content-body    (cdr content-info))
+              (received-length (string-bytes content-body))
               ;; If `content-length' and `received-length' are the same, it
               ;; mean we have received the complete data and ready to be process!
-              ((= content-length received-length))
+              ((<= content-length received-length))
               (from (+ cogru--content-length-len (string-bytes (cogru-2str content-length))
-                       cogru--separator-len cogru--separator-len)))
-    (cogru--handle (substring cogru--data from received-length))
+                       cogru--separator-len cogru--separator-len))
+              (to (+ from content-length)))
+    (cogru--handle (cogru--substring cogru--data from (+ from content-length)))
     ;; Remove the processed data.
-    (let ((from (+ from received-length)))
-      (setq cogru--data (substring cogru--data from)))
+    (setq cogru--data (cogru--substring cogru--data to))
     ;; When there are data left, continue process the data until we have
     ;; processed all the requests.
     (unless (zerop (string-bytes cogru--data))
@@ -203,6 +247,7 @@ Ar you sure? ")))
   (cond (cogru--process
          (delete-process cogru--process)
          (setq cogru--process nil
+               cogru--data nil
                cogru-default-directory nil)
          (message "[INFO] Safely disconnected from the server"))
         (t (user-error "[WARNING] No connection is established; this does nothing"))))
