@@ -78,6 +78,16 @@
   "Return the address name."
   (format "http://%s:%s" cogru-host cogru-port))
 
+(defmacro cogru--ensure (&rest body)
+  "Run BODY only if connection is established."
+  (declare (indent 0))
+  `(if (process-live-p cogru--process)
+       (progn ,@body)
+     (user-error
+      (concat
+       "[WARNING] Can't send data without the connection being established; "
+       "try `M-x cogru-start` to connect to the server"))))
+
 ;;
 ;;; IO
 
@@ -126,12 +136,25 @@
 (defun cogru-test ()
   "Send test request to the server."
   (interactive)
-  (cogru-send '((method . "test"))))
+  (cogru--ensure
+    (cogru-send `((method . "test")))))
 
 (defun cogru-ping ()
   "Ping the server."
   (interactive)
-  (cogru-send '((method . "ping"))))
+  (cogru--ensure
+    (cogru-send `((method . "ping")))))
+
+(defun cogru-enter ()
+  "Enter the room."
+  (interactive)
+  (cogru--ensure
+    (let ((username (read-string "Enter your username: " user-full-name))
+          (password (and (y-or-n-p "Does the server requires a password to enter? ")
+                         (read-string "Enter password: "))))
+      (cogru-send `((method   . "enter")
+                    (username . ,username)
+                    (password . ,password))))))
 
 ;;
 ;;; Core
@@ -157,7 +180,7 @@
   "Return the content length in number from DATA."
   (when-let* ((splitted (split-string data "\r\n"))
               (len (length splitted))  ; array size
-              ((<= 3 len))
+              ((<= 3 len))  ; not enough data to process, need at least 3 lines
               (contnet-length (cl-first splitted))
               (content-body   (cl-third splitted))
               (contnet-length (s-replace "Content-Length: " "" contnet-length)))
