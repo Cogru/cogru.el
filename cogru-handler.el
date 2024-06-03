@@ -24,13 +24,66 @@
 
 (require 'ht)
 
-(defun cogru-handler--enter (data)
+;;
+;;; Externals
+
+(defvar cogru--username)
+
+(declare-function cogru--ensure "cogru.el")
+(declare-function cogru-send "cogru.el")
+
+;;
+;;; Util
+
+(defun cogru--connected-p ()
+  "Return non-nil when is connected."
+  (process-live-p cogru--process))
+
+;;
+;;; Request
+
+(defun cogru-test ()
+  "Send test request to the server."
+  (interactive)
+  (cogru--ensure
+    (cogru-send `((method . "test")))))
+
+(defun cogru-ping ()
+  "Ping the server."
+  (interactive)
+  (cogru--ensure
+    (cogru-send `((method . "ping")))))
+
+(defun cogru-enter ()
+  "Enter the room."
+  (interactive)
+  (cogru--ensure
+    (let ((username (read-string "Enter your username: " user-full-name))
+          (password (and (y-or-n-p "Does the server requires a password to enter? ")
+                         (read-string "Enter password: "))))
+      (cogru-send `((method   . "enter")
+                    (username . ,username)
+                    (password . ,password))))))
+
+(defun cogru-exit ()
+  "Exit the room."
+  (interactive)
+  (cogru--ensure
+    (when (yes-or-no-p "Are you sure you want to leave the room? ")
+      (cogru-send `((method   . "exit")
+                    (username . ,cogru--username)))
+      (setq cogru--username nil))))
+
+;;
+;;; Response
+
+(defun cogru--handle-enter (data)
   "Handler the `enter' event from DATA."
-  (let* ((status (ht-get data "status"))
-         (success (string= status "success"))
-         (msg (ht-get data "message")))
-    (unless success
-      (setq cogru--username nil))  ; clear username
+  (let* ((status   (ht-get data "status"))
+         (username (ht-get data "username"))
+         (msg      (ht-get data "message"))
+         (success  (string= status "success")))
+    (when success (setq cogru--username username))
     (message msg)))
 
 (provide 'cogru-handler)

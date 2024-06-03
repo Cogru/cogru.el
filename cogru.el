@@ -136,41 +136,6 @@
     (cogru--json-read-buffer)))
 
 ;;
-;;; Packet
-
-(defun cogru-test ()
-  "Send test request to the server."
-  (interactive)
-  (cogru--ensure
-    (cogru-send `((method . "test")))))
-
-(defun cogru-ping ()
-  "Ping the server."
-  (interactive)
-  (cogru--ensure
-    (cogru-send `((method . "ping")))))
-
-(defun cogru-enter ()
-  "Enter the room."
-  (interactive)
-  (cogru--ensure
-    (let ((username (read-string "Enter your username: " user-full-name))
-          (password (and (y-or-n-p "Does the server requires a password to enter? ")
-                         (read-string "Enter password: "))))
-      (setq cogru--username username)
-      (cogru-send `((method   . "enter")
-                    (username . ,username)
-                    (password . ,password))))))
-
-(defun cogru-exit ()
-  "Exit the room."
-  (interactive)
-  (cogru--ensure
-    (when (yes-or-no-p "Are you sure you want to leave the room? ")
-      (cogru-send `((method   . "exit")
-                    (username . ,cogru--username))))))
-
-;;
 ;;; Core
 
 (defconst cogru--content-length-len (string-bytes "Content-Length: ")
@@ -188,7 +153,7 @@
   (let* ((data   (cogru--json-read-from-string data))
          (method (ht-get data "method")))
     (pcase method
-      ("enter" (cogru-handler--enter data))
+      ("enter" (cogru--handle-enter data))
       (_ (user-error "[ERROR] Unknown action: %s" method)))))
 
 (defun cogru--content-length (data)
@@ -281,7 +246,8 @@ Ar you sure? ")))
                                            :filter #'cogru--filter
                                            :host host
                                            :service port))
-               (message "[INFO] Connected to [cogru-server:%s %s]" port cogru-default-directory)))
+               (message "[INFO] Connected to [cogru-server:%s %s]" port cogru-default-directory)
+               (cogru-enter)))
             (t (message "[INFO] Failed to establish workspace")))))))
 
 (defun cogru-stop ()
