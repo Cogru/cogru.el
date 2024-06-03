@@ -6,7 +6,7 @@
 ;; Maintainer: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; URL: https://github.com/Cogru/cogru.el
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "26.1") (msgu "0.1.0") (s "1.12.0") (ht "2.0"))
+;; Package-Requires: ((emacs "26.1") (msgu "0.1.0") (s "1.12.0") (ht "2.0") (log4e "0.4.1"))
 ;; Keywords: convenience cogru
 
 ;; This file is not part of GNU Emacs.
@@ -36,6 +36,7 @@
 (require 'msgu)
 (require 's)
 (require 'ht)
+(require 'log4e)
 
 (require 'cogru-handler)
 
@@ -71,6 +72,26 @@
 
 (defvar cogru-default-directory nil
   "The default directory for syncing the entire file tree.")
+
+;;
+;;; Logger
+
+(log4e:deflogger "cogru" "%t [%l] %m" "%Y-%m-%dT%H:%M:%S")
+
+(cogru--log-set-level 'trace)
+
+(define-minor-mode cogru-debug-mode
+  "Turn on/off debug mode for `cogru'."
+  :global t
+  :group 'cogru
+  :init-value nil
+  (if cogru-debug-mode (cogru--log-enable-logging)
+    (cogru--log-disable-logging)))
+
+(defun cogru-print (fmt &rest args)
+  "Debug message like function `message' with same argument FMT and ARGS."
+  (msgu-inhibit-log
+    (apply #'message fmt args)))
 
 ;;
 ;;; Util
@@ -150,10 +171,12 @@
 
 (defun cogru--handle (data)
   "Handle the incoming request DATA."
+  (cogru--log-trace data)
   (let* ((data   (cogru--json-read-from-string data))
          (method (ht-get data "method")))
     (pcase method
       ("enter" (cogru--handle-enter data))
+      ("exit"  (cogru--handle-exit data))
       (_ (user-error "[ERROR] Unknown action: %s" method)))))
 
 (defun cogru--content-length (data)
@@ -239,16 +262,17 @@ Ar you sure? ")))
                     (url-info (url-generic-parse-url addr))
                     (host (url-host url-info))
                     (port (url-port url-info)))
-               (message "[INFO] Connecting to %s..." addr)
+               (cogru-print "[INFO] Connecting to %s..." addr)
                (setq cogru--process
                      (make-network-process :name "*tcp-server-cogru*"
                                            :buffer "*tcp-server-cogru*"
                                            :filter #'cogru--filter
                                            :host host
                                            :service port))
-               (message "[INFO] Connected to [cogru-server:%s %s]" port cogru-default-directory)
-               (cogru-enter)))
-            (t (message "[INFO] Failed to establish workspace")))))))
+               (cogru-print "[INFO] Connected to [cogru-server:%s %s]" port cogru-default-directory)
+               (when (y-or-n-p "Do you want to enter the room? ")
+                 (cogru-enter))))
+            (t (cogru-print "[INFO] Failed to establish workspace")))))))
 
 (defun cogru-stop ()
   "Stop the connection."
@@ -258,7 +282,7 @@ Ar you sure? ")))
          (setq cogru--process nil
                cogru--data nil
                cogru-default-directory nil)
-         (message "[INFO] Safely disconnected from the server"))
+         (cogru-print "[INFO] Safely disconnected from the server"))
         (t (user-error "[WARNING] No connection is established; this does nothing"))))
 
 (provide 'cogru)

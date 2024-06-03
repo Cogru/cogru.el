@@ -30,6 +30,7 @@
 (defvar cogru--username)
 (defvar cogru--process)
 
+(declare-function cogru-print "cogru.el")
 (declare-function cogru--ensure "cogru.el")
 (declare-function cogru-send "cogru.el")
 
@@ -85,7 +86,15 @@
          (msg      (ht-get data "message"))
          (success  (string= status "success")))
     (when success (setq cogru--username username))
-    (message msg)))
+    (cogru-print msg)))
+
+(defun cogru--handle-exit (data)
+  "Handler the `exit' event from DATA."
+  (let* ((status   (ht-get data "status"))
+         (msg      (ht-get data "message"))
+         (success  (string= status "success")))
+    (when success (setq cogru--username nil))
+    (cogru-print msg)))
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here
