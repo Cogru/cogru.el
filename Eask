@@ -6,6 +6,7 @@
 (keywords "convenience" "cogru")
 
 (package-file "cogru.el")
+(files "cogru-*.el")
 
 (script "test" "echo \"Error: no test specified\" && exit 1")
 

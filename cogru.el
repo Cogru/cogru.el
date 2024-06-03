@@ -37,6 +37,8 @@
 (require 's)
 (require 'ht)
 
+(require 'cogru-handler)
+
 (defgroup cogru nil
   "Cogru plugin for real-time collaborative editing."
   :prefix "cogru-"
@@ -57,6 +59,9 @@
   "Hook run when the data comes in."
   :type 'hook
   :group 'cogru)
+
+(defvar cogru--username nil
+  "The client's username.")
 
 (defvar cogru--process nil
   "Process to one workspace.")
@@ -152,9 +157,18 @@
     (let ((username (read-string "Enter your username: " user-full-name))
           (password (and (y-or-n-p "Does the server requires a password to enter? ")
                          (read-string "Enter password: "))))
+      (setq cogru--username username)
       (cogru-send `((method   . "enter")
                     (username . ,username)
                     (password . ,password))))))
+
+(defun cogru-exit ()
+  "Exit the room."
+  (interactive)
+  (cogru--ensure
+    (when (yes-or-no-p "Are you sure you want to leave the room? ")
+      (cogru-send `((method   . "exit")
+                    (username . ,cogru--username))))))
 
 ;;
 ;;; Core
@@ -171,10 +185,11 @@
 
 (defun cogru--handle (data)
   "Handle the incoming request DATA."
-  (ic "output:" data)
-  (let ((data (cogru--json-read-from-string data)))
-    (ic data))
-  )
+  (let* ((data   (cogru--json-read-from-string data))
+         (method (ht-get data "method")))
+    (pcase method
+      ("enter" (cogru-handler--enter data))
+      (_ (user-error "[ERROR] Unknown action: %s" method)))))
 
 (defun cogru--content-length (data)
   "Return the content length in number from DATA."
