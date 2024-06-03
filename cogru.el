@@ -86,7 +86,7 @@
 (defmacro cogru--ensure (&rest body)
   "Run BODY only if connection is established."
   (declare (indent 0))
-  `(if (process-live-p cogru--process)
+  `(if (cogru--connected-p)
        (progn ,@body)
      (user-error
       (concat
@@ -226,7 +226,7 @@ Ar you sure? ")))
   (interactive)
   (msgu-inhibit-log
     ;; Silently kill the session if the process is already dead.
-    (unless (process-live-p cogru--process)
+    (unless (cogru--connected-p)
       (ignore-errors (cogru-stop)))
     (cond
      (cogru--process

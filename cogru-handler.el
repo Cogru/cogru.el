@@ -28,6 +28,7 @@
 ;;; Externals
 
 (defvar cogru--username)
+(defvar cogru--process)
 
 (declare-function cogru--ensure "cogru.el")
 (declare-function cogru-send "cogru.el")
