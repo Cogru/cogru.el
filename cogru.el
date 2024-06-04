@@ -173,13 +173,15 @@
   "Handle the incoming request DATA."
   (cogru--log-trace data)
   (let* ((data   (cogru--json-read-from-string data))
-         (method (ht-get data "method")))
-    (pcase method
-      ("test"  (cogru--handle-test data))
-      ("pong"  (cogru--handle-pong data))
-      ("enter" (cogru--handle-enter data))
-      ("exit"  (cogru--handle-exit data))
-      (_ (user-error "[ERROR] Unknown action: %s" method)))))
+         (method (ht-get data "method"))
+         (func (pcase method
+                 ("test"      #'cogru--handle-test)
+                 ("pong"      #'cogru--handle-pong)
+                 ("enter"     #'cogru--handle-enter)
+                 ("exit"      #'cogru--handle-exit)
+                 ("broadcast" #'cogru--handle-broadcast)
+                 (_ (user-error "[ERROR] Unknown action: %s" method)))))
+    (funcall func data)))
 
 (defun cogru--content-length (data)
   "Return the content length in number from DATA."
