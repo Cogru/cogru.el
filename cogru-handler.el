@@ -41,6 +41,10 @@
   "Return non-nil when is connected."
   (process-live-p cogru--process))
 
+(defun cogru--success-p (data)
+  "Return status"
+  (string= (ht-get data "status") "success"))
+
 ;;
 ;;; Request
 
@@ -76,6 +80,14 @@
                     (username . ,cogru--username)))
       (setq cogru--username nil))))
 
+(defun cogru-broadcast ()
+  "Broadcast across the room."
+  (interactive)
+  (cogru--ensure
+    (let ((msg (read-string "Message you want to broadcast: ")))
+      (cogru-send `((method  . "broadcast")
+                    (message . ,msg))))))
+
 ;;
 ;;; Response
 
@@ -89,20 +101,25 @@
 
 (defun cogru--handle-enter (data)
   "Handler the `enter' event from DATA."
-  (let* ((status   (ht-get data "status"))
-         (username (ht-get data "username"))
+  (let* ((username (ht-get data "username"))
          (msg      (ht-get data "message"))
-         (success  (string= status "success")))
+         (success  (cogru--success-p data)))
     (when success (setq cogru--username username))
     (cogru-print msg)))
 
 (defun cogru--handle-exit (data)
   "Handler the `exit' event from DATA."
-  (let* ((status   (ht-get data "status"))
-         (msg      (ht-get data "message"))
-         (success  (string= status "success")))
+  (let ((msg     (ht-get data "message"))
+        (success (cogru--success-p data)))
     (when success (setq cogru--username nil))
     (cogru-print msg)))
+
+(defun cogru--handle-broadcast (data)
+  "Handler the `broadcast' event from DATA."
+  (let ((msg (ht-get data "message"))
+        ;;(success (cogru--success-p data))
+        )
+    (message "%s" msg)))
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here
