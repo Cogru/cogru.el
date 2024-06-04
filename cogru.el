@@ -175,11 +175,12 @@
   (let* ((data   (cogru--json-read-from-string data))
          (method (ht-get data "method"))
          (func (pcase method
-                 ("test"      #'cogru--handle-test)
-                 ("pong"      #'cogru--handle-pong)
-                 ("enter"     #'cogru--handle-enter)
-                 ("exit"      #'cogru--handle-exit)
-                 ("broadcast" #'cogru--handle-broadcast)
+                 ("test"             #'cogru--handle-test)
+                 ("pong"             #'cogru--handle-pong)
+                 ("room::enter"      #'cogru--handle-room-enter)
+                 ("room::exit"       #'cogru--handle-room-exit)
+                 ("room::broadcast"  #'cogru--handle-room-broadcast)
+                 ("room::list_users" #'cogru--handle-room-list-users)
                  (_ (user-error "[ERROR] Unknown action: %s" method)))))
     (funcall func data)))
 

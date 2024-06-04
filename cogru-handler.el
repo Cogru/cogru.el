@@ -67,7 +67,7 @@
     (let ((username (read-string "Enter your username: " user-full-name))
           (password (and (y-or-n-p "Does the server requires a password to enter? ")
                          (read-string "Enter password: "))))
-      (cogru-send `((method   . "enter")
+      (cogru-send `((method   . "room::enter")
                     (username . ,username)
                     (password . ,password))))))
 
@@ -76,7 +76,7 @@
   (interactive)
   (cogru--ensure
     (when (yes-or-no-p "Are you sure you want to leave the room? ")
-      (cogru-send `((method   . "exit")
+      (cogru-send `((method   . "room::exit")
                     (username . ,cogru--username)))
       (setq cogru--username nil))))
 
@@ -85,7 +85,7 @@
   (interactive)
   (cogru--ensure
     (let ((msg (read-string "Message you want to broadcast: ")))
-      (cogru-send `((method  . "broadcast")
+      (cogru-send `((method  . "room::broadcast")
                     (message . ,msg))))))
 
 ;;
@@ -99,22 +99,22 @@
   "Handler the `poing' event from DATA."
   (message "%s" data))
 
-(defun cogru--handle-enter (data)
+(defun cogru--handle-room-enter (data)
   "Handler the `enter' event from DATA."
   (let* ((username (ht-get data "username"))
          (msg      (ht-get data "message"))
          (success  (cogru--success-p data)))
     (when success (setq cogru--username username))
-    (cogru-print msg)))
+    (message msg)))
 
-(defun cogru--handle-exit (data)
+(defun cogru--handle-room-exit (data)
   "Handler the `exit' event from DATA."
   (let ((msg     (ht-get data "message"))
         (success (cogru--success-p data)))
     (when success (setq cogru--username nil))
-    (cogru-print msg)))
+    (message msg)))
 
-(defun cogru--handle-broadcast (data)
+(defun cogru--handle-room-broadcast (data)
   "Handler the `broadcast' event from DATA."
   (let ((username (ht-get data "username"))
         (msg      (ht-get data "message"))
