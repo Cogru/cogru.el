@@ -79,6 +79,14 @@
 ;;
 ;;; Response
 
+(defun cogru--handle-test (data)
+  "Handler the `test' event from DATA."
+  (message "%s" data))
+
+(defun cogru--handle-pong (data)
+  "Handler the `poing' event from DATA."
+  (message "%s" data))
+
 (defun cogru--handle-enter (data)
   "Handler the `enter' event from DATA."
   (let* ((status   (ht-get data "status"))

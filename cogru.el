@@ -175,6 +175,8 @@
   (let* ((data   (cogru--json-read-from-string data))
          (method (ht-get data "method")))
     (pcase method
+      ("test"  (cogru--handle-test data))
+      ("pong"  (cogru--handle-pong data))
       ("enter" (cogru--handle-enter data))
       ("exit"  (cogru--handle-exit data))
       (_ (user-error "[ERROR] Unknown action: %s" method)))))
