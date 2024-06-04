@@ -116,10 +116,11 @@
 
 (defun cogru--handle-broadcast (data)
   "Handler the `broadcast' event from DATA."
-  (let ((msg (ht-get data "message"))
+  (let ((username (ht-get data "username"))
+        (msg      (ht-get data "message"))
         ;;(success (cogru--success-p data))
         )
-    (message "%s" msg)))
+    (message "📢 %s: %s" username msg)))
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here
