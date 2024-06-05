@@ -52,41 +52,41 @@
   "Send test request to the server."
   (interactive)
   (cogru--ensure
-    (cogru-send `((method . "test")))))
+   (cogru-send `((method . "test")))))
 
 (defun cogru-ping ()
   "Ping the server."
   (interactive)
   (cogru--ensure
-    (cogru-send `((method . "ping")))))
+   (cogru-send `((method . "ping")))))
 
 (defun cogru-enter ()
   "Enter the room."
   (interactive)
   (cogru--ensure
-    (let ((username (read-string "Enter your username: " user-full-name))
-          (password (and (y-or-n-p "Does the server requires a password to enter? ")
-                         (read-string "Enter password: "))))
-      (cogru-send `((method   . "room::enter")
-                    (username . ,username)
-                    (password . ,password))))))
+   (let ((username (read-string "Enter your username: " user-full-name))
+         (password (and (y-or-n-p "Does the server requires a password to enter? ")
+                        (read-string "Enter password: "))))
+     (cogru-send `((method   . "room::enter")
+                   (username . ,username)
+                   (password . ,password))))))
 
 (defun cogru-exit ()
   "Exit the room."
   (interactive)
   (cogru--ensure
-    (when (yes-or-no-p "Are you sure you want to leave the room? ")
-      (cogru-send `((method   . "room::exit")
-                    (username . ,cogru--username)))
-      (setq cogru--username nil))))
+   (when (yes-or-no-p "Are you sure you want to leave the room? ")
+     (cogru-send `((method   . "room::exit")
+                   (username . ,cogru--username)))
+     (setq cogru--username nil))))
 
 (defun cogru-broadcast ()
   "Broadcast across the room."
   (interactive)
   (cogru--ensure
-    (let ((msg (read-string "Message you want to broadcast: ")))
-      (cogru-send `((method  . "room::broadcast")
-                    (message . ,msg))))))
+   (let ((msg (read-string "Message you want to broadcast: ")))
+     (cogru-send `((method  . "room::broadcast")
+                   (message . ,msg))))))
 
 ;;
 ;;; Response
@@ -121,6 +121,10 @@
         ;;(success (cogru--success-p data))
         )
     (message "📢 %s: %s" username msg)))
+
+(defun cogru--handle-room-list-users (data)
+  "Handler the `broadcast' event from DATA."
+  )
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here
