@@ -186,6 +186,7 @@
                  ("init"             #'cogru--handle-init)
                  ("room::enter"      #'cogru--handle-room-enter)
                  ("room::exit"       #'cogru--handle-room-exit)
+                 ("room::kick"       #'cogru--handle-room-kick)
                  ("room::broadcast"  #'cogru--handle-room-broadcast)
                  ("room::list_users" #'cogru--handle-room-list-users)
                  ("file::open"       #'cogru--handle-file-open)

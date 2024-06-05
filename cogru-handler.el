@@ -114,6 +114,16 @@
     (when success (setq cogru--username nil))
     (message msg)))
 
+(defun cogru--handle-room-kick (data)
+  "Handle the `kick' event from DATA."
+  (let* ((username (ht-get data "username"))
+         (admin    (ht-get data "admin"))
+         (msg      (ht-get data "message"))
+         (success  (cogru--success-p data)))
+    (if success
+        (message "🦶 %s has been kicked out by %s" username admin)
+      (message msg))))
+
 (defun cogru--handle-room-broadcast (data)
   "Handle the `broadcast' event from DATA."
   (let ((username (ht-get data "username"))
