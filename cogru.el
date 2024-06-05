@@ -86,8 +86,13 @@
   :global t
   :group 'cogru
   :init-value nil
-  (if cogru-debug-mode (cogru--log-enable-logging)
-    (cogru--log-disable-logging)))
+  (cond (cogru-debug-mode
+         (cogru--log-enable-logging)
+         (cogru--log-enable-messaging nil))
+        (t
+         (cogru--log-disable-logging)
+         (cogru--log-disable-messaging)))
+  (cogru--log-clear-log))
 
 (defun cogru-print (fmt &rest args)
   "Debug message like function `message' with same argument FMT and ARGS."
@@ -178,10 +183,14 @@
          (func (pcase method
                  ("test"             #'cogru--handle-test)
                  ("pong"             #'cogru--handle-pong)
+                 ("init"             #'cogru--handle-init)
                  ("room::enter"      #'cogru--handle-room-enter)
                  ("room::exit"       #'cogru--handle-room-exit)
                  ("room::broadcast"  #'cogru--handle-room-broadcast)
                  ("room::list_users" #'cogru--handle-room-list-users)
+                 ("file::open"       #'cogru--handle-file-open)
+                 ("file::close"      #'cogru--handle-file-close)
+                 ("file::say"        #'cogru--handle-file-say)
                  (_ (user-error "[ERROR] Unknown action: %s" method)))))
     (funcall func data)))
 
@@ -249,6 +258,23 @@ Ar you sure? ")))
 ;;
 ;;; Entry
 
+(defun cogru--initialize ()
+  "Initialize the client.
+
+First message we send to the server."
+  (cogru--ensure
+    (cogru-send `((method . "init")
+                  (path   . ,cogru-default-directory)))))
+
+(defun cogru--handle-init (data)
+  "Handle the `init' event from DATA."
+  (let ((msg (ht-get data "message"))
+        (success (cogru--success-p data)))
+    (if success (cogru--log-info msg)
+      (cogru-print "Unable to initialize the workspace")
+      (sleep-for 0.5)
+      (cogru-stop))))
+
 ;;;###autoload
 (defun cogru-start ()
   "Start from connecting to the server."
@@ -276,8 +302,7 @@ Ar you sure? ")))
                                            :host host
                                            :service port))
                (cogru-print "[INFO] Connected to [cogru-server:%s %s]" port cogru-default-directory)
-               (when (y-or-n-p "Do you want to enter the room? ")
-                 (cogru-enter))))
+               (cogru--initialize)))
             (t (cogru-print "[INFO] Failed to establish workspace")))))))
 
 (defun cogru-stop ()

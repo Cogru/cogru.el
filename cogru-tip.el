@@ -95,5 +95,24 @@ forever delay.  HEIGHT of the tooltip that will display."
                      (lambda () (posframe-hide buffer-name)))
     t))
 
+;;
+;;; Request
+
+(defun cogru-say ()
+  "Say something."
+  (interactive)
+  (cogru--ensure
+    (let ((msg (read-string "Say: ")))
+      (cogru-send `((method  . "file::say")
+                    (message . ,msg))))))
+
+;;
+;;; Response
+
+(defun cogru--handle-file-say (data)
+  "Handle the `say' event from DATA."
+  
+  )
+
 (provide 'cogru-tip)
 ;;; cogru-tip.el ends here
