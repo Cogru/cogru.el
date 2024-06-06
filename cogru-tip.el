@@ -27,6 +27,8 @@
 (require 'posframe)
 (require 'named-timer)
 
+(require 'cogru-util)
+
 (defcustom cogru-tip-delay 3.0
   "Background color string."
   :type 'number
@@ -68,11 +70,11 @@
     (vertical-scroll-bars     . t))
   "Frame parameters used to create the frame.")
 
-(cl-defun cogru-tip-create (buffer-name string &key point (timeout 300) (height 30))
+(cl-defun cogru-tip-create (buffer-name string &key point (timeout 300))
   "Pop up an tooltip depends on the graphic used.
 
 STRING is the content of the toolip.  The location POINT.  TIMEOUT for not
-forever delay.  HEIGHT of the tooltip that will display."
+forever delay."
   (let* ((bg cogru-tip-background-color)
          (fg cogru-tip-foreground-color)
          (fringe-width 10)
@@ -115,6 +117,7 @@ forever delay.  HEIGHT of the tooltip that will display."
          (msg      (ht-get data "message"))
          (success  (cogru--success-p data)))
     ;; TODO: ..
+    (cogru-print username msg success)
     ))
 
 (provide 'cogru-tip)

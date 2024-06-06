@@ -38,8 +38,7 @@
 (require 'ht)
 (require 'log4e)
 
-(require 'cogru-handler)
-(require 'cogru-tip)
+(require 'cogru-util)
 
 (defgroup cogru nil
   "Cogru plugin for real-time collaborative editing."
@@ -72,6 +71,12 @@
   "The default directory for syncing the entire file tree.")
 
 ;;
+;;; Externals
+
+(declare-function cogru-enter "cogru-handler.el")
+(declare-function cogru--handle "cogru-handler.el")
+
+;;
 ;;; Logger
 
 (log4e:deflogger "cogru" "%t [%l] %m" "%Y-%m-%dT%H:%M:%S")
@@ -95,69 +100,6 @@
   "Debug message like function `message' with same argument FMT and ARGS."
   (msgu-inhibit-log
     (apply #'message fmt args)))
-
-;;
-;;; Util
-
-(defun cogru-2str (obj)
-  "Convert OBJ to string."
-  (format "%s" obj))
-
-(defun cogru-address ()
-  "Return the address name."
-  (format "http://%s:%s" cogru-host cogru-port))
-
-(defmacro cogru--ensure (&rest body)
-  "Run BODY only if connection is established."
-  (declare (indent 0))
-  `(if (cogru--connected-p)
-       (progn ,@body)
-     (user-error
-      (concat
-       "[WARNING] Can't send data without the connection being established; "
-       "try `M-x cogru-start` to connect to the server"))))
-
-;;
-;;; IO
-
-(defmacro cogru--json-serialize (params)
-  "Serialize json PARAMS."
-  (if (progn (require 'json)
-             (fboundp 'json-serialize))
-      `(json-serialize ,params
-                       :null-object nil
-                       :false-object :json-false)
-    `(let ((json-false :json-false))
-       (json-encode ,params))))
-
-(defun cogru--make-message (params)
-  "Create a CSP message from PARAMS, after encoding it to a JSON string."
-  (let ((body (cogru--json-serialize params)))
-    (concat "Content-Length: "
-            (number-to-string (1+ (string-bytes body)))
-            "\r\n\r\n"
-            body
-            "\n")))
-
-(defmacro cogru--json-read-buffer ()
-  "Read json from the current buffer."
-  (if (progn
-        (require 'json)
-        (fboundp 'json-parse-buffer))
-      `(json-parse-buffer :object-type 'hash-table
-                          :null-object nil
-                          :false-object nil)
-    `(let ((json-array-type 'vector)
-           (json-object-type 'hash-table)
-           (json-false nil))
-       (json-read))))
-
-(defun cogru--json-read-from-string (json-string)
-  "Read JSON-STRING to JSON object."
-  (with-temp-buffer
-    (insert json-string)
-    (goto-char (point-min))
-    (cogru--json-read-buffer)))
 
 ;;
 ;;; Client
@@ -191,27 +133,6 @@
 (defun cogru-send (obj)
   "Send message to the server."
   (process-send-string cogru--process (cogru--make-message obj)))
-
-(defun cogru--handle (data)
-  "Handle the incoming request DATA."
-  (cogru--log-trace data)
-  (let* ((data   (cogru--json-read-from-string data))
-         (method (ht-get data "method"))
-         (func (pcase method
-                 ("test"             #'cogru--handle-test)
-                 ("pong"             #'cogru--handle-pong)
-                 ("init"             #'cogru--handle-init)
-                 ("room::enter"      #'cogru--handle-room-enter)
-                 ("room::exit"       #'cogru--handle-room-exit)
-                 ("room::kick"       #'cogru--handle-room-kick)
-                 ("room::broadcast"  #'cogru--handle-room-broadcast)
-                 ("room::list_users" #'cogru--handle-room-list-users)
-                 ("room::sync"       #'cogru--handle-room-sync)
-                 ("file::open"       #'cogru--handle-file-open)
-                 ("file::close"      #'cogru--handle-file-close)
-                 ("file::say"        #'cogru--handle-file-say)
-                 (_ (user-error "[ERROR] Unknown action: %s" method)))))
-    (funcall func data)))
 
 (defun cogru--content-length (data)
   "Return the content length in number from DATA."

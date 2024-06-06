@@ -24,25 +24,31 @@
 
 (require 'ht)
 
-;;
-;;; Externals
-
-(defvar cogru--process)
-
-(declare-function cogru-print "cogru.el")
-(declare-function cogru--ensure "cogru.el")
-(declare-function cogru-send "cogru.el")
+(require 'cogru)
 
 ;;
-;;; Util
+;;; Core
 
-(defun cogru--connected-p ()
-  "Return non-nil when is connected."
-  (process-live-p cogru--process))
-
-(defun cogru--success-p (data)
-  "Return status"
-  (string= (ht-get data "status") "success"))
+(defun cogru--handle (data)
+  "Handle the incoming request DATA."
+  (cogru--log-trace data)
+  (let* ((data   (cogru--json-read-from-string data))
+         (method (ht-get data "method"))
+         (func (pcase method
+                 ("test"             #'cogru--handle-test)
+                 ("pong"             #'cogru--handle-pong)
+                 ("init"             #'cogru--handle-init)
+                 ("room::enter"      #'cogru--handle-room-enter)
+                 ("room::exit"       #'cogru--handle-room-exit)
+                 ("room::kick"       #'cogru--handle-room-kick)
+                 ("room::broadcast"  #'cogru--handle-room-broadcast)
+                 ("room::list_users" #'cogru--handle-room-list-users)
+                 ("room::sync"       #'cogru--handle-room-sync)
+                 ;;("file::open"       #'cogru--handle-file-open)
+                 ;;("file::close"      #'cogru--handle-file-close)
+                 ;;("file::say"        #'cogru--handle-file-say)
+                 (_ (user-error "[ERROR] Unknown action: %s" method)))))
+    (funcall func data)))
 
 ;;
 ;;; Request
@@ -150,7 +156,7 @@
         (message "📢 %s: %s" username msg)
       (message msg))))
 
-(defun cogru--handle-room-list-users (data)
+(defun cogru--handle-room-list-users (_data)
   "Handle the `list_users' event from DATA."
   )
 
