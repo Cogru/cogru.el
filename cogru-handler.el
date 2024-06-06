@@ -27,7 +27,6 @@
 ;;
 ;;; Externals
 
-(defvar cogru--username)
 (defvar cogru--process)
 
 (declare-function cogru-print "cogru.el")
@@ -77,8 +76,7 @@
   (cogru--ensure
     (when (yes-or-no-p "Are you sure you want to leave the room? ")
       (cogru-send `((method   . "room::exit")
-                    (username . ,cogru--username)))
-      (setq cogru--username nil))))
+                    (username . ,(cogru-client-username cogru--client)))))))
 
 (defun cogru-kick ()
   "Kick someone out of the room."
@@ -87,7 +85,7 @@
     ;; TODO: Fill in completing candidates.
     (let ((username (completing-read "Kick the user: " nil)))
       (cogru-send `((method   . "room::kick")
-                    (admin    . ,cogru--username)
+                    (admin    . ,(cogru-client-username cogru--client))
                     (username . ,username))))))
 
 (defun cogru-broadcast ()
@@ -97,6 +95,13 @@
     (let ((msg (read-string "Message you want to broadcast: ")))
       (cogru-send `((method  . "room::broadcast")
                     (message . ,msg))))))
+
+(defun cogru-sync ()
+  "Sync files."
+  (interactive)
+  (cogru--ensure
+    (cogru-send `((method  . "room::sync")
+                  (path    . ,cogru-default-directory)))))
 
 ;;
 ;;; Response
@@ -114,14 +119,16 @@
   (let* ((username (ht-get data "username"))
          (msg      (ht-get data "message"))
          (success  (cogru--success-p data)))
-    (when success (setq cogru--username username))
+    (when success
+      (setq cogru--client (cogru-client-create :username username))
+      (cogru-sync))
     (message msg)))
 
 (defun cogru--handle-room-exit (data)
   "Handle the `exit' event from DATA."
   (let ((msg     (ht-get data "message"))
         (success (cogru--success-p data)))
-    (when success (setq cogru--username nil))
+    (when success (setq cogru--client nil))
     (message msg)))
 
 (defun cogru--handle-room-kick (data)
@@ -144,8 +151,15 @@
       (message msg))))
 
 (defun cogru--handle-room-list-users (data)
-  "Handle the `broadcast' event from DATA."
+  "Handle the `list_users' event from DATA."
   )
+
+(defun cogru--handle-room-sync (data)
+  "Handle the `sync' event from DATA."
+  (let ((path    (ht-get data "path"))
+        (content (ht-get data "content")))
+    (make-directory (file-name-directory path) t)
+    (write-region content nil path)))
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here

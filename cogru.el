@@ -62,9 +62,6 @@
   :type 'hook
   :group 'cogru)
 
-(defvar cogru--username nil
-  "The client's username.")
-
 (defvar cogru--process nil
   "Process to one workspace.")
 
@@ -165,9 +162,22 @@
 ;;
 ;;; Client
 
-;; (cl-defstruct (cogru-client
-;;                (:constructor cogru-client-create)
-;;                ))
+(cl-defstruct (cogru-client
+               (:constructor cogru-client-create))
+  "The client implementation."
+  username
+  entered
+  admin
+  path
+  point
+  region-start
+  region-end)
+
+(defvar cogru--client nil
+  "Local client represent self.")
+
+(defvar cogru--clients nil
+  "List of simulated clients.")
 
 ;;
 ;;; Core
@@ -196,6 +206,7 @@
                  ("room::kick"       #'cogru--handle-room-kick)
                  ("room::broadcast"  #'cogru--handle-room-broadcast)
                  ("room::list_users" #'cogru--handle-room-list-users)
+                 ("room::sync"       #'cogru--handle-room-sync)
                  ("file::open"       #'cogru--handle-file-open)
                  ("file::close"      #'cogru--handle-file-close)
                  ("file::say"        #'cogru--handle-file-say)
@@ -278,10 +289,16 @@ First message we send to the server."
   "Handle the `init' event from DATA."
   (let ((msg (ht-get data "message"))
         (success (cogru--success-p data)))
-    (if success (cogru--log-info msg)
+    (cond
+     (success
+      (cogru--log-info msg)
+      (sleep-for 0.5)
+      (when (y-or-n-p "Do you want to enter the room? ")
+        (cogru-enter)))
+     (t
       (cogru-print "Unable to initialize the workspace")
       (sleep-for 0.5)
-      (cogru-stop))))
+      (cogru-stop)))))
 
 ;;;###autoload
 (defun cogru-start ()
@@ -320,7 +337,9 @@ First message we send to the server."
          (delete-process cogru--process)
          (setq cogru--process nil
                cogru--data nil
-               cogru-default-directory nil)
+               cogru-default-directory nil
+               cogru--client nil
+               cogru--clients nil)
          (cogru-print "[INFO] Safely disconnected from the server"))
         (t (user-error "[WARNING] No connection is established; this does nothing"))))
 
