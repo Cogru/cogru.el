@@ -163,6 +163,13 @@
     (cogru--json-read-buffer)))
 
 ;;
+;;; Client
+
+;; (cl-defstruct (cogru-client
+;;                (:constructor cogru-client-create)
+;;                ))
+
+;;
 ;;; Core
 
 (defconst cogru--content-length-len (string-bytes "Content-Length: ")

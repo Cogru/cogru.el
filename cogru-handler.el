@@ -80,6 +80,16 @@
                     (username . ,cogru--username)))
       (setq cogru--username nil))))
 
+(defun cogru-kick ()
+  "Kick someone out of the room."
+  (interactive)
+  (cogru--ensure
+    ;; TODO: Fill in completing candidates.
+    (let ((username (completing-read "Kick the user: " nil)))
+      (cogru-send `((method   . "room::kick")
+                    (admin    . ,cogru--username)
+                    (username . ,username))))))
+
 (defun cogru-broadcast ()
   "Broadcast across the room."
   (interactive)

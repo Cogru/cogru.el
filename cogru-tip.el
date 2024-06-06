@@ -111,8 +111,11 @@ forever delay.  HEIGHT of the tooltip that will display."
 
 (defun cogru--handle-file-say (data)
   "Handle the `say' event from DATA."
-  
-  )
+  (let* ((username (ht-get data "username"))
+         (msg      (ht-get data "message"))
+         (success  (cogru--success-p data)))
+    ;; TODO: ..
+    ))
 
 (provide 'cogru-tip)
 ;;; cogru-tip.el ends here
