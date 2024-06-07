@@ -78,21 +78,20 @@ forever delay."
   (let* ((bg cogru-tip-background-color)
          (fg cogru-tip-foreground-color)
          (fringe-width 10)
-         (timer-name (intern buffer-name))
-         (frame
-          (posframe-show
-           buffer-name
-           :string string :position point
-           :timeout timeout
-           :background-color bg :foreground-color fg
-           :internal-border-width 1
-           :internal-border-color (face-foreground 'font-lock-comment-face nil t)
-           :left-fringe fringe-width :right-fringe fringe-width
-           :override-parameters
-           (append cogru-tip-frame-parameters
-                   `((default-minibuffer-frame . ,(selected-frame))
-                     (minibuffer               . ,(minibuffer-window))))
-           :accept-focus t)))
+         (timer-name (intern buffer-name)))
+    (posframe-show
+     buffer-name
+     :string string :position point
+     :timeout timeout
+     :background-color bg :foreground-color fg
+     :internal-border-width 1
+     :internal-border-color (face-foreground 'font-lock-comment-face nil t)
+     :left-fringe fringe-width :right-fringe fringe-width
+     :override-parameters
+     (append cogru-tip-frame-parameters
+             `((default-minibuffer-frame . ,(selected-frame))
+               (minibuffer               . ,(minibuffer-window))))
+     :accept-focus t)
     (named-timer-run timer-name cogru-tip-delay nil
                      (lambda () (posframe-hide buffer-name)))
     t))

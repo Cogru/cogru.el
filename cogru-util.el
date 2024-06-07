@@ -25,11 +25,11 @@
 ;;; Code:
 
 ;;
-;;; Others
+;;; Externals
 
-(defun cogru-2str (obj)
-  "Convert OBJ to string."
-  (format "%s" obj))
+(defvar cogru--process)
+(defvar cogru-host)
+(defvar cogru-port)
 
 ;;
 ;;; Network
@@ -55,6 +55,13 @@
       (concat
        "[WARNING] Can't send data without the connection being established; "
        "try `M-x cogru-start` to connect to the server"))))
+
+;;
+;;; String
+
+(defun cogru-2str (obj)
+  "Convert OBJ to string."
+  (format "%s" obj))
 
 ;;
 ;;; IO
