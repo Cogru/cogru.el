@@ -39,6 +39,7 @@
 (require 'log4e)
 
 (require 'cogru-util)
+(require 'cogru-handler)
 
 (defgroup cogru nil
   "Cogru plugin for real-time collaborative editing."
@@ -69,12 +70,6 @@
 
 (defvar cogru-default-directory nil
   "The default directory for syncing the entire file tree.")
-
-;;
-;;; Externals
-
-(declare-function cogru-enter "cogru-handler.el")
-(declare-function cogru--handle "cogru-handler.el")
 
 ;;
 ;;; Logger
@@ -220,6 +215,27 @@ First message we send to the server."
       (cogru-print "Unable to initialize the workspace")
       (sleep-for 0.5)
       (cogru-stop)))))
+
+(defun cogru--handle (data)
+  "Handle the incoming request DATA."
+  (cogru--log-trace data)
+  (let* ((data   (cogru--json-read-from-string data))
+         (method (ht-get data "method"))
+         (func (pcase method
+                 ("test"             #'cogru--handle-test)
+                 ("pong"             #'cogru--handle-pong)
+                 ("init"             #'cogru--handle-init)
+                 ("room::enter"      #'cogru--handle-room-enter)
+                 ("room::exit"       #'cogru--handle-room-exit)
+                 ("room::kick"       #'cogru--handle-room-kick)
+                 ("room::broadcast"  #'cogru--handle-room-broadcast)
+                 ("room::list_users" #'cogru--handle-room-list-users)
+                 ("room::sync"       #'cogru--handle-room-sync)
+                 ;;("file::open"       #'cogru--handle-file-open)
+                 ;;("file::close"      #'cogru--handle-file-close)
+                 ;;("file::say"        #'cogru--handle-file-say)
+                 (_ (user-error "[ERROR] Unknown action: %s" method)))))
+    (funcall func data)))
 
 ;;;###autoload
 (defun cogru-start ()

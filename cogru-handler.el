@@ -24,31 +24,16 @@
 
 (require 'ht)
 
-(require 'cogru)
+(require 'cogru-util)
 
 ;;
-;;; Core
+;;; Externals
 
-(defun cogru--handle (data)
-  "Handle the incoming request DATA."
-  (cogru--log-trace data)
-  (let* ((data   (cogru--json-read-from-string data))
-         (method (ht-get data "method"))
-         (func (pcase method
-                 ("test"             #'cogru--handle-test)
-                 ("pong"             #'cogru--handle-pong)
-                 ("init"             #'cogru--handle-init)
-                 ("room::enter"      #'cogru--handle-room-enter)
-                 ("room::exit"       #'cogru--handle-room-exit)
-                 ("room::kick"       #'cogru--handle-room-kick)
-                 ("room::broadcast"  #'cogru--handle-room-broadcast)
-                 ("room::list_users" #'cogru--handle-room-list-users)
-                 ("room::sync"       #'cogru--handle-room-sync)
-                 ;;("file::open"       #'cogru--handle-file-open)
-                 ;;("file::close"      #'cogru--handle-file-close)
-                 ;;("file::say"        #'cogru--handle-file-say)
-                 (_ (user-error "[ERROR] Unknown action: %s" method)))))
-    (funcall func data)))
+(defvar cogru--client)
+(defvar cogru--clients)
+(defvar cogru-default-directory)
+
+(declare-function cogru-send "ext:cogru-handler.el")
 
 ;;
 ;;; Request
