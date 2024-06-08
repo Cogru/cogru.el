@@ -27,9 +27,10 @@
 ;;
 ;;; Externals
 
-(defvar cogru--process)
 (defvar cogru-host)
 (defvar cogru-port)
+(defvar cogru--process)
+(defvar cogru--path)
 
 ;;
 ;;; Network
@@ -51,12 +52,19 @@
   (declare (indent 0))
   `(cond
     ((cogru--connected-p) ,@body)
+    ((not cogru-mode))  ; do nothing
     (t
      (cogru-mode -1)
-     (user-error
-      (concat
-       "[WARNING] Can't send data without the connection being established; "
-       "try `M-x cogru-start` to connect to the server")))))
+     (message (concat
+               "[Cogru] Can't send data without the connection being established; "
+               "try `M-x cogru-start` to connect to the server")))))
+
+;;
+;;; Project
+
+(defun cogru--project-file-p (&optional path)
+  "Return non-nil if the PATH is under the workspace."
+  (string-prefix-p cogru--path (or path (buffer-file-name)) t))
 
 ;;
 ;;; String

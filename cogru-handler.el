@@ -31,9 +31,9 @@
 
 (defvar cogru--client)
 (defvar cogru--clients)
-(defvar cogru-default-directory)
+(defvar cogru--path)
 
-(declare-function cogru-send "ext:cogru-handler.el")
+(declare-function cogru-send "cogru-handler.el")
 
 ;;
 ;;; Request
@@ -87,12 +87,19 @@
       (cogru-send `((method  . "room::broadcast")
                     (message . ,msg))))))
 
-(defun cogru-sync ()
-  "Sync files."
+(defun cogru-sync-room ()
+  "Sync room files."
   (interactive)
   (cogru--ensure
-    (cogru-send `((method  . "room::sync")
-                  (path    . ,cogru-default-directory)))))
+    (cogru-send `((method . "room::sync")
+                  (path   . ,cogru--path)))))
+
+(defun cogru-sync-file ()
+  "Sync single file."
+  (interactive)
+  (cogru--ensure
+    ;; TODO: ..
+    ))
 
 ;;
 ;;; Response
@@ -112,7 +119,7 @@
          (success  (cogru--success-p data)))
     (when success
       (setq cogru--client (cogru-client-create :username username))
-      (cogru-sync))
+      (cogru-sync-room))
     (message msg)))
 
 (defun cogru--handle-room-exit (data)
@@ -147,10 +154,13 @@
 
 (defun cogru--handle-room-sync (data)
   "Handle the `room::sync' event from DATA."
-  (let ((path    (ht-get data "path"))
-        (content (ht-get data "content")))
-    (make-directory (file-name-directory path) t)
-    (write-region content nil path)))
+  (let* ((path    (ht-get data "path"))
+         (content (ht-get data "content"))
+         (exists  (file-exists-p path)))
+    (ignore-errors (make-directory (file-name-directory path) t))
+    (msgu-silent (write-region content nil path))
+    (if exists (message "Overwrote file %s" path)
+      (message "Wrote file %s" path))))
 
 (defun cogru--handle-file-say (_data)
   "Handle the `file::say' event from DATA."

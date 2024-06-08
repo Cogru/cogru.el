@@ -68,7 +68,7 @@
 (defvar cogru--data nil
   "Hold the received raw data wait for a complete requests.")
 
-(defvar cogru-default-directory nil
+(defvar cogru--path nil
   "The default directory for syncing the entire file tree.")
 
 ;;
@@ -115,6 +115,18 @@
 
 (defvar cogru--clients nil
   "List of simulated clients.")
+
+(defun cogru-client-update ()
+  "Update the client once."
+  (when cogru--client
+    (let ((use-region (use-region-p)))
+      (setf (cogru-client-path cogru--client) (and (cogru--project-file-p)
+                                                   (buffer-file-name)))
+      (setf (cogru-client-point cogru--client) (point))
+      (setf (cogru-client-region-start cogru--client) (and use-region
+                                                           (region-beginning)))
+      (setf (cogru-client-region-end cogru--client) (and use-region
+                                                         (region-end))))))
 
 ;;
 ;;; Core
@@ -181,36 +193,14 @@ string position but in bytes."
 
 (defun cogru--select-workspace ()
   "Pick a workspace to start collaboration."
-  (setq cogru-default-directory nil)  ; reset
+  (setq cogru--path nil)  ; reset
   (let* ((dir (read-directory-name "Select a directory to start the workspace: "))
          (files (directory-files default-directory nil directory-files-no-dot-files-regexp nil 1)))
     (when (or (null files)
               (and files
                    (yes-or-no-p "The folder is not empty, you may lose your file and/or corrupt the workspace.
 Ar you sure? ")))
-      (setq cogru-default-directory (expand-file-name dir)))))
-
-;;
-;;; Mode
-
-(defun cogru-mode--enable ()
-  "Enable `cogru-mode'."
-  (unless (cogru--connected-p) (cogru-start))
-  (cogru--ensure
-    ;;(add-hook 'after-save-hook )
-    ))
-
-(defun cogru-mode--disable ()
-  "Disable `cogru-mode'."
-  (cogru-stop))
-
-;;;###autoload
-(define-minor-mode cogru-mode
-  "Minor mode `cogru-mode'."
-  :global t
-  :require 'cogru-mode
-  :group 'cogru
-  (if cogru-mode (cogru-mode--enable) (cogru-mode--disable)))
+      (setq cogru--path (expand-file-name dir)))))
 
 ;;
 ;;; Entry
@@ -221,7 +211,7 @@ Ar you sure? ")))
 First message we send to the server."
   (cogru--ensure
     (cogru-send `((method . "init")
-                  (path   . ,cogru-default-directory)))))
+                  (path   . ,cogru--path)))))
 
 (defun cogru--handle-init (data)
   "Handle the `init' event from DATA."
@@ -251,7 +241,7 @@ First message we send to the server."
                  ("room::exit"      #'cogru--handle-room-exit)
                  ("room::kick"      #'cogru--handle-room-kick)
                  ("room::broadcast" #'cogru--handle-room-broadcast)
-                 ("room::update"      #'cogru--handle-room-update)
+                 ("room::update"    #'cogru--handle-room-update)
                  ("room::users"     #'cogru--handle-room-users)
                  ("room::sync"      #'cogru--handle-room-sync)
                  ("file::say"       #'cogru--handle-file-say)
@@ -271,7 +261,7 @@ First message we send to the server."
       (cogru-print "[Cogru] The connection is already established; only one client-server connection is allowed"))
      (t
       (cogru--select-workspace)
-      (cond (cogru-default-directory
+      (cond (cogru--path
              (let* ((default-addr (cogru-address))
                     (addr (read-string "Host url: " default-addr))
                     (url-info (url-generic-parse-url addr))
@@ -284,7 +274,7 @@ First message we send to the server."
                                            :filter #'cogru--filter
                                            :host host
                                            :service port))
-               (cogru-print "[Cogru] Connected to [cogru-server:%s %s]" port cogru-default-directory)
+               (cogru-print "[Cogru] Connected to [cogru-server:%s %s]" port cogru--path)
                (cogru--initialize)))
             (t (cogru-print "[Cogru] Failed to establish workspace")))))))
 
@@ -295,7 +285,7 @@ First message we send to the server."
          (delete-process cogru--process)
          (setq cogru--process nil
                cogru--data nil
-               cogru-default-directory nil
+               cogru--path nil
                cogru--client nil
                cogru--clients nil)
          (cogru-print "[Cogru] Safely disconnected from the server"))
