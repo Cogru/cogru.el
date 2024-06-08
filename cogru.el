@@ -40,6 +40,7 @@
 
 (require 'cogru-util)
 (require 'cogru-handler)
+(require 'cogru-mode)
 
 (defgroup cogru nil
   "Cogru plugin for real-time collaborative editing."

@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'ht)
+
 ;;
 ;;; Externals
 

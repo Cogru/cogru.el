@@ -33,11 +33,26 @@
 (defvar cogru--clients)
 (defvar cogru--path)
 
+(declare-function cogru-start "cogru.el")
+(declare-function cogru-stop "cogru.el")
+(declare-function cogru-send "cogru.el")
+
+(declare-function cogru-client-point "cogru.el")
+(declare-function cogru-client-path "cogru.el")
+(declare-function cogru-client-region-start "cogru.el")
+(declare-function cogru-client-region-end "cogru.el")
 (declare-function cogru-client-update "cogru.el")
-(declare-function cogru-send "cogru-handler.el")
 
 ;;
 ;;; Entry
+
+;;;###autoload
+(define-minor-mode cogru-mode
+  "Minor mode `cogru-mode'."
+  :global t
+  :require 'cogru-mode
+  :group 'cogru
+  (if cogru-mode (cogru-mode--enable) (cogru-mode--disable)))
 
 (defun cogru-mode--enable ()
   "Enable `cogru-mode'."
@@ -53,14 +68,6 @@
   (remove-hook 'after-save-hook #'cogru--after-save)
   (cogru-stop))
 
-;;;###autoload
-(define-minor-mode cogru-mode
-  "Minor mode `cogru-mode'."
-  :global t
-  :require 'cogru-mode
-  :group 'cogru
-  (if cogru-mode (cogru-mode--enable) (cogru-mode--disable)))
-
 ;;
 ;;; Core
 
@@ -72,7 +79,7 @@
                (path         (cogru-client-path cogru--client))
                (point        (cogru-client-point cogru--client))
                (region-start (cogru-client-region-start cogru--client))
-               (region-end   (cogru-client-point cogru--client)))
+               (region-end   (cogru-client-region-end cogru--client)))
       (cogru-send `((method       . "room::update")
                     (path         . ,path)
                     (point        . ,point)

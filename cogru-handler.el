@@ -25,6 +25,7 @@
 (require 'ht)
 
 (require 'cogru-util)
+(require 'cogru-mode)
 
 ;;
 ;;; Externals
@@ -34,6 +35,9 @@
 (defvar cogru--path)
 
 (declare-function cogru-send "cogru-handler.el")
+
+(declare-function cogru-client-create "cogru.el")
+(declare-function cogru-client-username "cogru.el")
 
 ;;
 ;;; Request
@@ -147,6 +151,10 @@
     (if success
         (message "📢 %s: %s" username msg)
       (message msg))))
+
+(defun cogru--handle-room-update (_data)
+  "Handle the `room::update' event from DATA."
+  )
 
 (defun cogru--handle-room-users (_data)
   "Handle the `room::users' event from DATA."

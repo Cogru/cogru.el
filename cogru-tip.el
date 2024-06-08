@@ -24,10 +24,12 @@
 
 ;;; Code:
 
+(require 'ht)
 (require 'posframe)
 (require 'named-timer)
 
 (require 'cogru-util)
+(require 'cogru-mode)
 
 (defcustom cogru-tip-delay 3.0
   "Background color string."
@@ -69,6 +71,15 @@
     (desktop-dont-save        . t)
     (vertical-scroll-bars     . t))
   "Frame parameters used to create the frame.")
+
+;;
+;;; Externals
+
+(declare-function cogru-send "cogru.el")
+(declare-function cogru-print "cogru.el")
+
+;;
+;;; Core
 
 (cl-defun cogru-tip-create (buffer-name string &key point (timeout 300))
   "Pop up an tooltip depends on the graphic used.
