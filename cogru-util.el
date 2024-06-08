@@ -49,12 +49,14 @@
 (defmacro cogru--ensure (&rest body)
   "Run BODY only if connection is established."
   (declare (indent 0))
-  `(if (cogru--connected-p)
-       (progn ,@body)
+  `(cond
+    ((cogru--connected-p) ,@body)
+    (t
+     (cogru-mode -1)
      (user-error
       (concat
        "[WARNING] Can't send data without the connection being established; "
-       "try `M-x cogru-start` to connect to the server"))))
+       "try `M-x cogru-start` to connect to the server")))))
 
 ;;
 ;;; String

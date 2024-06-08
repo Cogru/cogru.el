@@ -106,7 +106,7 @@
   (message "%s" data))
 
 (defun cogru--handle-room-enter (data)
-  "Handle the `enter' event from DATA."
+  "Handle the `room::enter' event from DATA."
   (let* ((username (ht-get data "username"))
          (msg      (ht-get data "message"))
          (success  (cogru--success-p data)))
@@ -116,14 +116,14 @@
     (message msg)))
 
 (defun cogru--handle-room-exit (data)
-  "Handle the `exit' event from DATA."
+  "Handle the `room::exit' event from DATA."
   (let ((msg     (ht-get data "message"))
         (success (cogru--success-p data)))
     (when success (setq cogru--client nil))
     (message msg)))
 
 (defun cogru--handle-room-kick (data)
-  "Handle the `kick' event from DATA."
+  "Handle the `room::kick' event from DATA."
   (let* ((username (ht-get data "username"))
          (admin    (ht-get data "admin"))
          (msg      (ht-get data "message"))
@@ -133,7 +133,7 @@
       (message msg))))
 
 (defun cogru--handle-room-broadcast (data)
-  "Handle the `broadcast' event from DATA."
+  "Handle the `room::broadcast' event from DATA."
   (let ((username (ht-get data "username"))
         (msg      (ht-get data "message"))
         (success (cogru--success-p data)))
@@ -141,16 +141,20 @@
         (message "📢 %s: %s" username msg)
       (message msg))))
 
-(defun cogru--handle-room-list-users (_data)
-  "Handle the `list_users' event from DATA."
+(defun cogru--handle-room-users (_data)
+  "Handle the `room::users' event from DATA."
   )
 
 (defun cogru--handle-room-sync (data)
-  "Handle the `sync' event from DATA."
+  "Handle the `room::sync' event from DATA."
   (let ((path    (ht-get data "path"))
         (content (ht-get data "content")))
     (make-directory (file-name-directory path) t)
     (write-region content nil path)))
+
+(defun cogru--handle-file-say (_data)
+  "Handle the `file::say' event from DATA."
+  )
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here

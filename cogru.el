@@ -191,6 +191,28 @@ Ar you sure? ")))
       (setq cogru-default-directory (expand-file-name dir)))))
 
 ;;
+;;; Mode
+
+(defun cogru-mode--enable ()
+  "Enable `cogru-mode'."
+  (unless (cogru--connected-p) (cogru-start))
+  (cogru--ensure
+    ;;(add-hook 'after-save-hook )
+    ))
+
+(defun cogru-mode--disable ()
+  "Disable `cogru-mode'."
+  (cogru-stop))
+
+;;;###autoload
+(define-minor-mode cogru-mode
+  "Minor mode `cogru-mode'."
+  :global t
+  :require 'cogru-mode
+  :group 'cogru
+  (if cogru-mode (cogru-mode--enable) (cogru-mode--disable)))
+
+;;
 ;;; Entry
 
 (defun cogru--initialize ()
@@ -222,19 +244,18 @@ First message we send to the server."
   (let* ((data   (cogru--json-read-from-string data))
          (method (ht-get data "method"))
          (func (pcase method
-                 ("test"             #'cogru--handle-test)
-                 ("pong"             #'cogru--handle-pong)
-                 ("init"             #'cogru--handle-init)
-                 ("room::enter"      #'cogru--handle-room-enter)
-                 ("room::exit"       #'cogru--handle-room-exit)
-                 ("room::kick"       #'cogru--handle-room-kick)
-                 ("room::broadcast"  #'cogru--handle-room-broadcast)
-                 ("room::list_users" #'cogru--handle-room-list-users)
-                 ("room::sync"       #'cogru--handle-room-sync)
-                 ;;("file::open"       #'cogru--handle-file-open)
-                 ;;("file::close"      #'cogru--handle-file-close)
-                 ;;("file::say"        #'cogru--handle-file-say)
-                 (_ (user-error "[ERROR] Unknown action: %s" method)))))
+                 ("test"            #'cogru--handle-test)
+                 ("pong"            #'cogru--handle-pong)
+                 ("init"            #'cogru--handle-init)
+                 ("room::enter"     #'cogru--handle-room-enter)
+                 ("room::exit"      #'cogru--handle-room-exit)
+                 ("room::kick"      #'cogru--handle-room-kick)
+                 ("room::broadcast" #'cogru--handle-room-broadcast)
+                 ("room::update"      #'cogru--handle-room-update)
+                 ("room::users"     #'cogru--handle-room-users)
+                 ("room::sync"      #'cogru--handle-room-sync)
+                 ("file::say"       #'cogru--handle-file-say)
+                 (_ (cogru-print "[Cogru] Unknown action to handle: %s" method)))))
     (funcall func data)))
 
 ;;;###autoload
@@ -247,7 +268,7 @@ First message we send to the server."
       (ignore-errors (cogru-stop)))
     (cond
      (cogru--process
-      (user-error "[WARNING] The connection is already established; only one client-server connection is allowed"))
+      (cogru-print "[Cogru] The connection is already established; only one client-server connection is allowed"))
      (t
       (cogru--select-workspace)
       (cond (cogru-default-directory
@@ -256,16 +277,16 @@ First message we send to the server."
                     (url-info (url-generic-parse-url addr))
                     (host (url-host url-info))
                     (port (url-port url-info)))
-               (cogru-print "[INFO] Connecting to %s..." addr)
+               (cogru-print "[Cogru] Connecting to %s..." addr)
                (setq cogru--process
                      (make-network-process :name "*tcp-server-cogru*"
                                            :buffer "*tcp-server-cogru*"
                                            :filter #'cogru--filter
                                            :host host
                                            :service port))
-               (cogru-print "[INFO] Connected to [cogru-server:%s %s]" port cogru-default-directory)
+               (cogru-print "[Cogru] Connected to [cogru-server:%s %s]" port cogru-default-directory)
                (cogru--initialize)))
-            (t (cogru-print "[INFO] Failed to establish workspace")))))))
+            (t (cogru-print "[Cogru] Failed to establish workspace")))))))
 
 (defun cogru-stop ()
   "Stop the connection."
@@ -277,8 +298,9 @@ First message we send to the server."
                cogru-default-directory nil
                cogru--client nil
                cogru--clients nil)
-         (cogru-print "[INFO] Safely disconnected from the server"))
-        (t (user-error "[WARNING] No connection is established; this does nothing"))))
+         (cogru-print "[Cogru] Safely disconnected from the server"))
+        (t
+         (cogru-print "[Cogru] No connection is established; this does nothing"))))
 
 (provide 'cogru)
 ;;; cogru.el ends here
