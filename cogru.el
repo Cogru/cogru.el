@@ -119,7 +119,7 @@
 
 (defun cogru-client-update ()
   "Update the client once."
-  (cogru--ensure-entered
+  (when cogru--client
     (let ((use-region (use-region-p)))
       (setf (cogru-client-path cogru--client) (and (cogru--under-path-p)
                                                    (buffer-file-name)))

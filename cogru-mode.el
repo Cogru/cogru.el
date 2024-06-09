@@ -93,11 +93,10 @@
   "Post command hook."
   (cogru-client-update)
   (cogru--ensure-entered
-    (when-let ((cogru--client)
-               (path         (cogru-client-path cogru--client))
-               (point        (cogru-client-point cogru--client))
-               (region-start (cogru-client-region-start cogru--client))
-               (region-end   (cogru-client-region-end cogru--client)))
+    (let ((path         (cogru-client-path cogru--client))
+          (point        (cogru-client-point cogru--client))
+          (region-start (cogru-client-region-start cogru--client))
+          (region-end   (cogru-client-region-end cogru--client)))
       (cogru-send `((method       . "room::update")
                     (path         . ,path)
                     (point        . ,point)

@@ -158,9 +158,10 @@
 
 (defun cogru--handle-room-users (data)
   "Handle the `room::users' event from DATA."
-  (when-let (((cogru--success-p data))
-             (clients (ht-get data "cliens"))
-             )
+  (when-let* (((cogru--success-p data))
+              (clients (ht-get data "clients"))
+              (clients (cogru--json-read-from-string clients)))
+    (ic clients)
     ))
 
 (defun cogru--handle-room-sync (data)
