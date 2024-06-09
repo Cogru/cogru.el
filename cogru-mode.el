@@ -24,7 +24,17 @@
 
 ;;; Code:
 
+(require 'named-timer)
+
 (require 'cogru-util)
+
+(defcustom cogru-interval 0.4
+  "Interval in seconds between updating each frames."
+  :type 'number
+  :group 'cogru)
+
+(defconst cogru--update-timer-name (intern "*cogru-imter*")
+  "Name of the update timer.")
 
 ;;
 ;;; Externals
@@ -57,12 +67,15 @@
 (defun cogru-mode--enable ()
   "Enable `cogru-mode'."
   (unless (cogru--connected-p) (cogru-start))
-  (cogru--ensure
+  (named-timer-run cogru--update-timer-name nil cogru-interval
+                   #'cogru--update)
+  (cogru--ensure-connected
     (add-hook 'post-command-hook #'cogru--post-command 95)
     (add-hook 'after-save-hook #'cogru--after-save 95)))
 
 (defun cogru-mode--disable ()
   "Disable `cogru-mode'."
+  (named-timer-cancel cogru--update-timer-name)
   (remove-hook 'post-command-hook #'cogru--post-command)
   (remove-hook 'after-save-hook #'cogru--after-save)
   (cogru-stop))
@@ -70,10 +83,16 @@
 ;;
 ;;; Core
 
+(defun cogru--update ()
+  "Update between interval."
+  (cogru--ensure-entered
+    (cogru-send `((method   . "room::users")
+                  (username . ,(cogru-client-username cogru--client))))))
+
 (defun cogru--post-command ()
   "Post command hook."
   (cogru-client-update)
-  (cogru--ensure
+  (cogru--ensure-entered
     (when-let ((cogru--client)
                (path         (cogru-client-path cogru--client))
                (point        (cogru-client-point cogru--client))
@@ -87,8 +106,8 @@
 
 (defun cogru--after-save ()
   "After save hook."
-  (cogru--ensure
-    (when-let* ((cogru--project-file-p)
+  (cogru--ensure-entered
+    (when-let* (((cogru--project-file-p))
                 (cogru--client)
                 (path         (cogru-client-path cogru--client)))
       (cogru-send `((method . "file::save")

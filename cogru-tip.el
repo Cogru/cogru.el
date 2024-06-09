@@ -113,7 +113,7 @@ forever delay."
 (defun cogru-say ()
   "Say something."
   (interactive)
-  (cogru--ensure
+  (cogru--ensure-connected
     (let ((msg (read-string "Say: ")))
       (cogru-send `((method  . "file::say")
                     (message . ,msg))))))

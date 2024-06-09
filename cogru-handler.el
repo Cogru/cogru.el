@@ -45,19 +45,19 @@
 (defun cogru-test ()
   "Send test request to the server."
   (interactive)
-  (cogru--ensure
+  (cogru--ensure-connected
     (cogru-send `((method . "test")))))
 
 (defun cogru-ping ()
   "Ping the server."
   (interactive)
-  (cogru--ensure
+  (cogru--ensure-connected
     (cogru-send `((method . "ping")))))
 
 (defun cogru-enter ()
   "Enter the room."
   (interactive)
-  (cogru--ensure
+  (cogru--ensure-connected
     (let ((username (read-string "Enter your username: " user-full-name))
           (password (and (y-or-n-p "Does the server requires a password to enter? ")
                          (read-string "Enter password: "))))
@@ -68,7 +68,7 @@
 (defun cogru-exit ()
   "Exit the room."
   (interactive)
-  (cogru--ensure
+  (cogru--ensure-connected
     (when (yes-or-no-p "Are you sure you want to leave the room? ")
       (cogru-send `((method   . "room::exit")
                     (username . ,(cogru-client-username cogru--client)))))))
@@ -76,7 +76,7 @@
 (defun cogru-kick ()
   "Kick someone out of the room."
   (interactive)
-  (cogru--ensure
+  (cogru--ensure-connected
     ;; TODO: Fill in completing candidates.
     (let ((username (completing-read "Kick the user: " nil)))
       (cogru-send `((method   . "room::kick")
@@ -86,7 +86,7 @@
 (defun cogru-broadcast ()
   "Broadcast across the room."
   (interactive)
-  (cogru--ensure
+  (cogru--ensure-connected
     (let ((msg (read-string "Message you want to broadcast: ")))
       (cogru-send `((method  . "room::broadcast")
                     (message . ,msg))))))
@@ -94,14 +94,14 @@
 (defun cogru-sync-room ()
   "Sync room files."
   (interactive)
-  (cogru--ensure
+  (cogru--ensure-connected
     (cogru-send `((method . "room::sync")
                   (path   . ,cogru--path)))))
 
 (defun cogru-sync-file ()
   "Sync single file."
   (interactive)
-  (cogru--ensure
+  (cogru--ensure-connected
     ;; TODO: ..
     ))
 

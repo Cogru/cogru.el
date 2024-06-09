@@ -49,17 +49,26 @@
   "Return status"
   (string= (ht-get data "status") "success"))
 
-(defmacro cogru--ensure (&rest body)
+(defmacro cogru--ensure-connected (&rest body)
   "Run BODY only if connection is established."
   (declare (indent 0))
   `(cond
     ((cogru--connected-p) ,@body)
-    ((not cogru-mode))  ; do nothing
+    ((not cogru-mode))  ; Do nothing
     (t
-     (cogru-mode -1)
-     (message (concat
-               "[Cogru] Can't send data without the connection being established; "
-               "try `M-x cogru-start` to connect to the server")))))
+     (cogru-mode -1)  ; This will clean up the variable `cogru--client' too!
+     (message (concat "[Cogru] No connection being established; "
+                      "try `M-x cogru-start` to connect to the server")))))
+
+(defmacro cogru--ensure-entered (&rest body)
+  "Run BODY only if client is established."
+  (declare (indent 0))
+  `(cogru--ensure-connected
+     (cond (cogru--client ,@body)
+           (t
+            (message
+             (concat "[Cogru] You haven't enter the room yet; "
+                     "try `M-x cogru-enter` to enter the room"))))))
 
 ;;
 ;;; Project

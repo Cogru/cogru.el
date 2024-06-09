@@ -119,7 +119,7 @@
 
 (defun cogru-client-update ()
   "Update the client once."
-  (when cogru--client
+  (cogru--ensure-entered
     (let ((use-region (use-region-p)))
       (setf (cogru-client-path cogru--client) (and (cogru--project-file-p)
                                                    (buffer-file-name)))
@@ -210,7 +210,7 @@ Ar you sure? ")))
   "Initialize the client.
 
 First message we send to the server."
-  (cogru--ensure
+  (cogru--ensure-connected
     (cogru-send `((method . "init")
                   (path   . ,cogru--path)))))
 
