@@ -59,8 +59,7 @@
   (unless (cogru--connected-p) (cogru-start))
   (cogru--ensure
     (add-hook 'post-command-hook #'cogru--post-command 95)
-    (add-hook 'after-save-hook #'cogru--after-save 95)
-    ))
+    (add-hook 'after-save-hook #'cogru--after-save 95)))
 
 (defun cogru-mode--disable ()
   "Disable `cogru-mode'."
@@ -89,9 +88,11 @@
 (defun cogru--after-save ()
   "After save hook."
   (cogru--ensure
-    (when (cogru--project-file-p)
-      ;; TODO: ..
-      )))
+    (when-let* ((cogru--project-file-p)
+                (cogru--client)
+                (path         (cogru-client-path cogru--client)))
+      (cogru-send `((method . "file::save")
+                    (path   . ,path))))))
 
 (provide 'cogru-mode)
 ;;; cogru-mode.el ends here
