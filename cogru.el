@@ -121,7 +121,7 @@
   "Update the client once."
   (cogru--ensure-entered
     (let ((use-region (use-region-p)))
-      (setf (cogru-client-path cogru--client) (and (cogru--project-file-p)
+      (setf (cogru-client-path cogru--client) (and (cogru--under-path-p)
                                                    (buffer-file-name)))
       (setf (cogru-client-point cogru--client) (point))
       (setf (cogru-client-region-start cogru--client) (and use-region

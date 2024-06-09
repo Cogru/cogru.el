@@ -64,18 +64,16 @@
   "Run BODY only if client is established."
   (declare (indent 0))
   `(cogru--ensure-connected
-     (cond (cogru--client ,@body)
-           (t
-            (message
-             (concat "[Cogru] You haven't enter the room yet; "
-                     "try `M-x cogru-enter` to enter the room"))))))
+     (when (and cogru--client (cogru--under-path-p))
+       ,@body)))
 
 ;;
 ;;; Project
 
-(defun cogru--project-file-p (&optional path)
+(defun cogru--under-path-p (&optional path)
   "Return non-nil if the PATH is under the workspace."
-  (string-prefix-p cogru--path (or path (buffer-file-name)) t))
+  (when-let ((path (or path (buffer-file-name))))
+    (string-prefix-p cogru--path path t)))
 
 ;;
 ;;; String

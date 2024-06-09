@@ -67,9 +67,9 @@
 (defun cogru-mode--enable ()
   "Enable `cogru-mode'."
   (unless (cogru--connected-p) (cogru-start))
-  (named-timer-run cogru--update-timer-name nil cogru-interval
-                   #'cogru--update)
   (cogru--ensure-connected
+    (named-timer-run cogru--update-timer-name nil cogru-interval
+                     #'cogru--update)
     (add-hook 'post-command-hook #'cogru--post-command 95)
     (add-hook 'after-save-hook #'cogru--after-save 95)))
 
@@ -107,7 +107,7 @@
 (defun cogru--after-save ()
   "After save hook."
   (cogru--ensure-entered
-    (when-let* (((cogru--project-file-p))
+    (when-let* (((cogru--under-path-p))
                 (cogru--client)
                 (path         (cogru-client-path cogru--client)))
       (cogru-send `((method . "file::save")

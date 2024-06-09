@@ -152,13 +152,16 @@
         (message "📢 %s: %s" username msg)
       (message msg))))
 
-(defun cogru--handle-room-update (_data)
+(defun cogru--handle-room-update (data)
   "Handle the `room::update' event from DATA."
   )
 
-(defun cogru--handle-room-users (_data)
+(defun cogru--handle-room-users (data)
   "Handle the `room::users' event from DATA."
-  )
+  (when-let (((cogru--success-p data))
+             (clients (ht-get data "cliens"))
+             )
+    ))
 
 (defun cogru--handle-room-sync (data)
   "Handle the `room::sync' event from DATA."
