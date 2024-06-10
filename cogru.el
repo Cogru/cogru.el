@@ -6,7 +6,7 @@
 ;; Maintainer: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; URL: https://github.com/Cogru/cogru.el
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "26.1") (msgu "0.1.0") (s "1.12.0") (ht "2.0") (log4e "0.4.1") (posframe "1.4.3") (named-timer "0.1"))
+;; Package-Requires: ((emacs "26.1") (elenv "0.1.0") (msgu "0.1.0") (s "1.12.0") (ht "2.0") (log4e "0.4.1") (posframe "1.4.3") (named-timer "0.1"))
 ;; Keywords: convenience cogru
 
 ;; This file is not part of GNU Emacs.
@@ -33,6 +33,7 @@
 
 (require 'cl-lib)
 
+(require 'elenv)
 (require 'msgu)
 (require 's)
 (require 'ht)
@@ -242,7 +243,6 @@ First message we send to the server."
                  ("room::exit"      #'cogru--handle-room-exit)
                  ("room::kick"      #'cogru--handle-room-kick)
                  ("room::broadcast" #'cogru--handle-room-broadcast)
-                 ("room::update"    #'cogru--handle-room-update)
                  ("room::users"     #'cogru--handle-room-users)
                  ("room::sync"      #'cogru--handle-room-sync)
                  ("file::users"     #'cogru--handle-file-users)
