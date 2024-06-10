@@ -36,6 +36,9 @@
 (defconst cogru--update-timer-name (intern "*cogru-imter*")
   "Name of the update timer.")
 
+(defvar cogru--cleared-client-p nil
+  "Set to non-nil when info is clear on the server.")
+
 ;;
 ;;; Externals
 
@@ -85,7 +88,7 @@
 
 (defun cogru--update ()
   "Update between interval."
-  (cogru--ensure-entered
+  (cogru--ensure-under-path
     (cogru-send `((method   . "file::users")
                   (username . ,(cogru-client-username cogru--client))
                   (file     . ,(buffer-file-name))))))
@@ -98,15 +101,19 @@
           (point        (cogru-client-point cogru--client))
           (region-start (cogru-client-region-start cogru--client))
           (region-end   (cogru-client-region-end cogru--client)))
-      (cogru-send `((method       . "room::update")
-                    (path         . ,path)
-                    (point        . ,point)
-                    (region_start . ,region-start)
-                    (region_end   . ,region-end))))))
+      (when (or path (not cogru--cleared-client-p))
+        (cogru-send `((method       . "room::update")
+                      (path         . ,path)
+                      (point        . ,point)
+                      (region_start . ,region-start)
+                      (region_end   . ,region-end)))
+        (setq cogru--cleared-client-p nil))
+      (unless path
+        (setq cogru--cleared-client-p t)))))
 
 (defun cogru--after-save ()
   "After save hook."
-  (cogru--ensure-entered
+  (cogru--ensure-under-path
     (when-let* (((cogru--under-path-p))
                 (cogru--client)
                 (path         (cogru-client-path cogru--client)))

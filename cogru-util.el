@@ -64,8 +64,14 @@
   "Run BODY only if client is established."
   (declare (indent 0))
   `(cogru--ensure-connected
-     (when (and cogru--client (cogru--under-path-p))
-       ,@body)))
+     (when cogru--client ,@body)))
+
+(defmacro cogru--ensure-under-path (&rest body)
+  "Run BODY only if client is under session path."
+  (declare (indent 0))
+  `(cogru--ensure-connected
+     (cogru--ensure-entered
+       (when (cogru--under-path-p) ,@body))))
 
 ;;
 ;;; Project
