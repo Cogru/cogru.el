@@ -61,6 +61,8 @@
     (let ((username (read-string "Enter your username: " user-full-name))
           (password (and (y-or-n-p "Does the server requires a password to enter? ")
                          (read-string "Enter password: "))))
+      ;; Frist make the client.
+      (setq cogru--client (cogru-client-create :username username))
       (cogru-send `((method   . "room::enter")
                     (username . ,username)
                     (password . ,password))))))
@@ -121,9 +123,13 @@
   (let* ((username (ht-get data "username"))
          (msg      (ht-get data "message"))
          (success  (cogru--success-p data)))
-    (when success
-      (setq cogru--client (cogru-client-create :username username))
-      (cogru-sync-room))
+    (cond (success
+           ;; Validate client and sync!
+           (when (string= username (cogru-client-username cogru--client))
+             (cogru-sync-room)))
+          (t
+           ;; Invalidate client!
+           (setq cogru--client nil)))
     (message msg)))
 
 (defun cogru--handle-room-exit (data)
