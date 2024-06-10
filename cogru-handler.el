@@ -170,9 +170,18 @@
          (content (ht-get data "content"))
          (exists  (file-exists-p path)))
     (ignore-errors (make-directory (file-name-directory path) t))
-    (msgu-silent (write-region content nil path))
+    (let ((buffer-file-coding-system 'utf-8-unix))
+      (msgu-silent (write-region content nil pat)))
     (if exists (message "Overwrote file %s" path)
       (message "Wrote file %s" path))))
+
+(defun cogru--handle-file-users (data)
+  "Handle the `file::users' event from DATA."
+  (when-let* (((cogru--success-p data))
+              (clients (ht-get data "clients"))
+              (clients (cogru--json-read-from-string clients)))
+    (ic clients)
+    ))
 
 (defun cogru--handle-file-say (_data)
   "Handle the `file::say' event from DATA."

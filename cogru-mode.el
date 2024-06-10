@@ -86,8 +86,9 @@
 (defun cogru--update ()
   "Update between interval."
   (cogru--ensure-entered
-    (cogru-send `((method   . "room::users")
-                  (username . ,(cogru-client-username cogru--client))))))
+    (cogru-send `((method   . "file::users")
+                  (username . ,(cogru-client-username cogru--client))
+                  (file     . ,(buffer-file-name))))))
 
 (defun cogru--post-command ()
   "Post command hook."

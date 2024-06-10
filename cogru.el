@@ -245,6 +245,7 @@ First message we send to the server."
                  ("room::update"    #'cogru--handle-room-update)
                  ("room::users"     #'cogru--handle-room-users)
                  ("room::sync"      #'cogru--handle-room-sync)
+                 ("file::users"     #'cogru--handle-file-users)
                  ("file::say"       #'cogru--handle-file-say)
                  (_ (cogru-print "[Cogru] Unknown action to handle: %s" method)))))
     (funcall func data)))
