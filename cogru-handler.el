@@ -168,12 +168,16 @@
   "Handle the `room::sync' event from DATA."
   (let* ((path    (ht-get data "path"))
          (content (ht-get data "content"))
-         (exists  (file-exists-p path)))
-    (ignore-errors (make-directory (file-name-directory path) t))
-    (let ((buffer-file-coding-system 'utf-8-unix))
-      (msgu-silent (write-region content nil pat)))
-    (if exists (message "Overwrote file %s" path)
-      (message "Wrote file %s" path))))
+         (exists  (ignore-errors (file-exists-p path)))
+         (msg     (ht-get data "message"))
+         (success (cogru--success-p data)))
+    (cond (success
+           (ignore-errors (make-directory (file-name-directory path) t))
+           (let ((buffer-file-coding-system 'utf-8-unix))
+             (msgu-silent (write-region content nil path)))
+           (if exists (message "Overwrote file %s" path)
+             (message "Wrote file %s" path)))
+          (t (message msg)))))
 
 (defun cogru--handle-file-users (data)
   "Handle the `file::users' event from DATA."
