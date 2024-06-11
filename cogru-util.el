@@ -46,7 +46,7 @@
   (process-live-p cogru--process))
 
 (defun cogru--success-p (data)
-  "Return status"
+  "Return success status from DATA."
   (string= (ht-get data "status") "success"))
 
 (defmacro cogru--ensure-connected (&rest body)

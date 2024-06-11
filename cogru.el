@@ -85,6 +85,7 @@
   :global t
   :group 'cogru
   :init-value nil
+  :require 'cogru
   (cond (cogru-debug-mode
          (cogru--log-enable-logging)
          (cogru--log-enable-messaging nil))
@@ -140,7 +141,7 @@
   "Hold the content separator length.")
 
 (defun cogru-send (obj)
-  "Send message to the server."
+  "Send message OBJ to the server."
   (process-send-string cogru--process (cogru--make-message obj)))
 
 (defun cogru--content-length (data)

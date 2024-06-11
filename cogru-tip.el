@@ -82,7 +82,7 @@
 ;;; Core
 
 (cl-defun cogru-tip-create (buffer-name string &key point (timeout 300))
-  "Pop up an tooltip depends on the graphic used.
+  "Pop up an tooltip (BUFFER-NAME) depends on the graphic used.
 
 STRING is the content of the toolip.  The location POINT.  TIMEOUT for not
 forever delay."
