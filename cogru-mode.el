@@ -33,7 +33,7 @@
   :type 'number
   :group 'cogru)
 
-(defconst cogru--update-timer-name (intern "*cogru-imter*")
+(defconst cogru--update-timer-name (intern "*cogru-timer*")
   "Name of the update timer.")
 
 (defvar cogru--cleared-client-p nil
@@ -73,12 +73,14 @@
   (cogru--ensure-connected
     (named-timer-run cogru--update-timer-name nil cogru-interval
                      #'cogru--update)
+    (add-hook 'after-change-functions #'cogru--after-change 95)
     (add-hook 'post-command-hook #'cogru--post-command 95)
     (add-hook 'after-save-hook #'cogru--after-save 95)))
 
 (defun cogru-mode--disable ()
   "Disable `cogru-mode'."
   (named-timer-cancel cogru--update-timer-name)
+  (remove-hook 'after-change-functions #'cogru--after-change)
   (remove-hook 'post-command-hook #'cogru--post-command)
   (remove-hook 'after-save-hook #'cogru--after-save)
   (cogru-stop))
@@ -93,6 +95,47 @@
                   (username . ,(cogru-client-username cogru--client))
                   (file     . ,(buffer-file-name))))))
 
+(defun cogru--after-save ()
+  "After save hook."
+  (cogru--ensure-under-path
+    (when-let* (((cogru--under-path-p))
+                (cogru--client)
+                (path         (cogru-client-path cogru--client)))
+      (cogru-send `((method . "file::save")
+                    (path   . ,path))))))
+
+;;
+;;; Addition / Deletion
+
+(defun cogru--change-data (beg end len)
+  "Correct change data calculated by BEG, END and LEN."
+  (let* ((new-beg (+ beg len))
+         (swap-p (<= end new-beg))
+         (beg (if swap-p end new-beg))
+         (end (if swap-p new-beg end)))
+    (unless (= beg end)
+      (list (if swap-p "delete" "add") beg end
+            (buffer-substring-no-properties beg end)))))
+
+(defun cogru--after-change (beg end len)
+  "Do stuff after buffer is changed with BEG, END and LEN."
+  (cogru--ensure-under-path
+    (when-let* ((data (cogru--change-data beg end len))
+                (type    (nth 0 data))
+                (beg     (nth 1 data))
+                (end     (nth 2 data))
+                (content (nth 3 data))
+                (path (cogru-client-path cogru--client)))
+      (cogru-send `((method  . "file::update")
+                    (path    . ,path)          ; What file to update?
+                    (type    . ,type)          ; `add' or `delete'
+                    (beg     . ,beg)           ; Beginning position
+                    (end     . ,end)           ; End position
+                    (content . ,content))))))  ; Only used for addition!
+
+;;
+;;; Post
+
 (defun cogru--post-command ()
   "Post command hook."
   (cogru-client-update)
@@ -102,23 +145,16 @@
           (region-start (cogru-client-region-start cogru--client))
           (region-end   (cogru-client-region-end cogru--client)))
       (when (or path (not cogru--cleared-client-p))
-        (cogru-send `((method       . "room::update")
+        (cogru-send `((method       . "room::update_client")
                       (path         . ,path)
                       (point        . ,point)
                       (region_start . ,region-start)
                       (region_end   . ,region-end)))
         (setq cogru--cleared-client-p nil))
+      ;; Flag to clean up the client info once before stop
+      ;; sending further more data.
       (unless path
         (setq cogru--cleared-client-p t)))))
-
-(defun cogru--after-save ()
-  "After save hook."
-  (cogru--ensure-under-path
-    (when-let* (((cogru--under-path-p))
-                (cogru--client)
-                (path         (cogru-client-path cogru--client)))
-      (cogru-send `((method . "file::save")
-                    (path   . ,path))))))
 
 (provide 'cogru-mode)
 ;;; cogru-mode.el ends here
