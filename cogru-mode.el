@@ -98,9 +98,7 @@
 (defun cogru--after-save ()
   "After save hook."
   (cogru--ensure-under-path
-    (when-let* (((cogru--under-path-p))
-                (cogru--client)
-                (path         (cogru-client-path cogru--client)))
+    (when-let ((path (cogru-client-path cogru--client)))
       (cogru-send `((method . "file::save")
                     (path   . ,path))))))
 
@@ -120,18 +118,18 @@
 (defun cogru--after-change (beg end len)
   "Do stuff after buffer is changed with BEG, END and LEN."
   (cogru--ensure-under-path
-    (when-let* ((data (cogru--change-data beg end len))
-                (type    (nth 0 data))
-                (beg     (nth 1 data))
-                (end     (nth 2 data))
-                (content (nth 3 data))
-                (path (cogru-client-path cogru--client)))
-      (cogru-send `((method  . "file::update")
-                    (path    . ,path)          ; What file to update?
-                    (type    . ,type)          ; `add' or `delete'
-                    (beg     . ,beg)           ; Beginning position
-                    (end     . ,end)           ; End position
-                    (content . ,content))))))  ; Only used for addition!
+    (when-let* ((data          (cogru--change-data beg end len))
+                (add-or-delete (nth 0 data))
+                (beg           (nth 1 data))
+                (end           (nth 2 data))
+                (content       (nth 3 data))
+                (path          (cogru-client-path cogru--client)))
+      (cogru-send `((method        . "file::update")
+                    (path          . ,path)           ; What file to update?
+                    (add_or_delete . ,add-or-delete)  ; `add' or `delete'
+                    (beg           . ,beg)            ; Beginning position
+                    (end           . ,end)            ; End position
+                    (content       . ,content))))))   ; Only used for addition!
 
 ;;
 ;;; Post
