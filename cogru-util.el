@@ -74,6 +74,21 @@
        (when (cogru--under-path-p) ,@body))))
 
 ;;
+;;; I/O
+
+(defun cogru-write-file (path contents)
+  "Write CONTENTS to PATH."
+  (let ((exists (ignore-errors (file-exists-p path))))
+    (ignore-errors (make-directory (file-name-directory path) t))
+    (let ((buffer-file-coding-system 'undecided-unix)
+          (coding-system-for-write)
+          (last-coding-system-used 'utf-8))
+      (msgu-silent (write-region contents nil path)))
+    ;; Print status
+    (if exists (message "Overwrote file %s" path)
+      (message "Wrote file %s" path))))
+
+;;
 ;;; Project
 
 (defun cogru--under-path-p (&optional path)
