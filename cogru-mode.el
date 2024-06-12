@@ -122,14 +122,14 @@
                 (add-or-delete (nth 0 data))
                 (beg           (nth 1 data))
                 (end           (nth 2 data))
-                (content       (nth 3 data))
+                (contents      (nth 3 data))
                 (path          (cogru-client-path cogru--client)))
       (cogru-send `((method        . "file::update")
-                    (path          . ,path)           ; What file to update?
-                    (add_or_delete . ,add-or-delete)  ; `add' or `delete'
-                    (beg           . ,beg)            ; Beginning position
-                    (end           . ,end)            ; End position
-                    (content       . ,content))))))   ; Only used for addition!
+                    (path          . ,path)            ; What file to update?
+                    (add_or_delete . ,add-or-delete)   ; `add' or `delete'
+                    (beg           . ,beg)             ; Beginning position
+                    (end           . ,end)             ; End position
+                    (contents      . ,contents))))))   ; Only used for addition!
 
 ;;
 ;;; Post
