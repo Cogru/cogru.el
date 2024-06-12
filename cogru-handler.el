@@ -175,8 +175,7 @@
          (success  (cogru--success-p data)))
     (cond (success
            (ignore-errors (make-directory (file-name-directory path) t))
-           (let ((buffer-file-coding-system 'utf-8-unix))
-             (msgu-silent (write-region contents nil path)))
+           (msgu-silent (write-region contents nil path))
            (if exists (message "Overwrote file %s" path)
              (message "Wrote file %s" path)))
           (t (message msg)))))

@@ -120,8 +120,8 @@
   (cogru--ensure-under-path
     (when-let* ((data          (cogru--change-data beg end len))
                 (add-or-delete (nth 0 data))
-                (beg           (nth 1 data))
-                (end           (nth 2 data))
+                (beg           (1- (position-bytes (nth 1 data))))
+                (end           (1- (position-bytes (nth 2 data))))
                 (contents      (nth 3 data))
                 (path          (cogru-client-path cogru--client)))
       (cogru-send `((method        . "file::update")
