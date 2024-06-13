@@ -81,9 +81,11 @@
   (add-hook 'post-command-hook #'cogru-mode--post-command)
   (let ((cogru--starting-p t))
     (unless (cogru--connected-p) (cogru-start)))
+  (remove-hook 'post-command-hook #'cogru-mode--post-command)
   (cogru--ensure-connected
     (named-timer-run cogru--update-timer-name nil cogru-interval
                      #'cogru--update)
+    (add-hook 'before-change-functions #'cogru--before-change 95)
     (add-hook 'after-change-functions #'cogru--after-change 95)
     (add-hook 'post-command-hook #'cogru--post-command 95)
     (add-hook 'after-save-hook #'cogru--after-save 95)))
@@ -91,6 +93,7 @@
 (defun cogru-mode--disable ()
   "Disable `cogru-mode'."
   (named-timer-cancel cogru--update-timer-name)
+  (remove-hook 'before-change-functions #'cogru--before-change)
   (remove-hook 'after-change-functions #'cogru--after-change)
   (remove-hook 'post-command-hook #'cogru--post-command)
   (remove-hook 'after-save-hook #'cogru--after-save)
@@ -116,31 +119,49 @@
 ;;
 ;;; Addition / Deletion
 
-(defun cogru--change-data (beg end len)
+(defvar cogru--befor-end nil
+  "Record the delete end position.")
+
+(defun cogru--before-change (beg end)
+  "Do stuff before buffer is changed with BEG and END."
+  (cogru--ensure-under-path
+    (when-let* (((not (= beg end)))
+                (beg  (1- (cogru-position-bytes beg)))
+                (end  (1- (cogru-position-bytes end)))
+                (path (cogru-client-path cogru--client)))
+      (ic "delete:" beg end)
+      (cogru-send `((method        . "file::update")
+                    (path          . ,path)  ; What file to update?
+                    (add_or_delete . "delete")
+                    (beg           . ,beg)
+                    (end           . ,end)
+                    (contents      . ""))))))
+
+(defun cogru--after-change-data (beg end len)
   "Correct change data calculated by BEG, END and LEN."
   (let* ((new-beg (+ beg len))
          (swap-p (<= end new-beg))
          (beg (if swap-p end new-beg))
          (end (if swap-p new-beg end)))
-    (unless (= beg end)
-      (list (if swap-p "delete" "add") beg end
-            (buffer-substring-no-properties beg end)))))
+    (when (and (not (= beg end)) (not swap-p))
+      (let ((contents (buffer-substring-no-properties beg end)))
+        (list beg end (cogru-str-le contents))))))
 
 (defun cogru--after-change (beg end len)
   "Do stuff after buffer is changed with BEG, END and LEN."
   (cogru--ensure-under-path
-    (when-let* ((data          (cogru--change-data beg end len))
-                (add-or-delete (nth 0 data))
-                (beg           (1- (position-bytes (nth 1 data))))
-                (end           (1- (position-bytes (nth 2 data))))
-                (contents      (nth 3 data))
-                (path          (cogru-client-path cogru--client)))
+    (when-let* ((data     (cogru--after-change-data beg end len))
+                (beg      (1- (cogru-position-bytes (nth 0 data))))
+                (end      (1- (cogru-position-bytes (nth 1 data))))
+                (contents (nth 2 data))
+                (path     (cogru-client-path cogru--client)))
+      (ic "add:" beg end contents)
       (cogru-send `((method        . "file::update")
-                    (path          . ,path)            ; What file to update?
-                    (add_or_delete . ,add-or-delete)   ; `add' or `delete'
-                    (beg           . ,beg)             ; Beginning position
-                    (end           . ,end)             ; End position
-                    (contents      . ,contents))))))   ; Only used for addition!
+                    (path          . ,path)  ; What file to update?
+                    (add_or_delete . "add")
+                    (beg           . ,beg)
+                    (end           . ,end)
+                    (contents      . ,contents))))))
 
 ;;
 ;;; Post

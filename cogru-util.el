@@ -103,6 +103,21 @@
   "Convert OBJ to string."
   (format "%s" obj))
 
+(defun cogru-position-bytes (position)
+  "Like function `position-bytes' but handle window line endings.
+
+The argument POSITION is the point."
+  (+ (position-bytes position)
+     (if (eq 'dos (show-eol-get-current-system))
+         (how-many "\n" 1 position)
+       0)))
+
+(defun cogru-str-le (str)
+  "Handle STR line endings."
+  (cond ((eq 'dos (show-eol-get-current-system))
+         (s-replace "\n" "\r\n" str))
+        (t str)))
+
 ;;
 ;;; IO
 
