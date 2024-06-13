@@ -125,43 +125,38 @@
 (defun cogru--before-change (beg end)
   "Do stuff before buffer is changed with BEG and END."
   (cogru--ensure-under-path
-    (when-let* (((not (= beg end)))
-                (beg  (1- (cogru-position-bytes beg)))
-                (end  (1- (cogru-position-bytes end)))
-                (path (cogru-client-path cogru--client)))
-      (ic "delete:" beg end)
-      (cogru-send `((method        . "file::update")
-                    (path          . ,path)  ; What file to update?
-                    (add_or_delete . "delete")
-                    (beg           . ,beg)
-                    (end           . ,end)
-                    (contents      . ""))))))
+    (unless (= beg end)
+      ;; Record end position for deletion!
+      (setq cogru--befor-end (1- (cogru-position-bytes end))))))
 
-(defun cogru--after-change-data (beg end len)
+(defun cogru--change-data (beg end len)
   "Correct change data calculated by BEG, END and LEN."
   (let* ((new-beg (+ beg len))
-         (swap-p (<= end new-beg))
+         (swap-p (<= end new-beg))  ; If swap mean deleting!
          (beg (if swap-p end new-beg))
          (end (if swap-p new-beg end)))
-    (when (and (not (= beg end)) (not swap-p))
-      (let ((contents (buffer-substring-no-properties beg end)))
-        (list beg end (cogru-str-le contents))))))
+    (unless (= beg end)
+      (list (if swap-p "delete" "add") beg end
+            (if swap-p ""
+              (cogru-str-le (buffer-substring-no-properties beg end)))))))
 
 (defun cogru--after-change (beg end len)
   "Do stuff after buffer is changed with BEG, END and LEN."
   (cogru--ensure-under-path
-    (when-let* ((data     (cogru--after-change-data beg end len))
-                (beg      (1- (cogru-position-bytes (nth 0 data))))
-                (end      (1- (cogru-position-bytes (nth 1 data))))
-                (contents (nth 2 data))
-                (path     (cogru-client-path cogru--client)))
-      (ic "add:" beg end contents)
+    (when-let* ((data          (cogru--change-data beg end len))
+                (add-or-delete (nth 0 data))
+                (beg           (1- (cogru-position-bytes (nth 1 data))))
+                (end           (if (string= add-or-delete "delete")
+                                   cogru--befor-end
+                                 (1- (cogru-position-bytes (nth 2 data)))))
+                (contents      (nth 3 data))
+                (path          (cogru-client-path cogru--client)))
       (cogru-send `((method        . "file::update")
-                    (path          . ,path)  ; What file to update?
-                    (add_or_delete . "add")
-                    (beg           . ,beg)
-                    (end           . ,end)
-                    (contents      . ,contents))))))
+                    (path          . ,path)            ; What file to update?
+                    (add_or_delete . ,add-or-delete)   ; `add' or `delete'
+                    (beg           . ,beg)             ; Beginning position
+                    (end           . ,end)             ; End position
+                    (contents      . ,contents))))))   ; Only used for addition!
 
 ;;
 ;;; Post
