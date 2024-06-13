@@ -22,6 +22,7 @@
 (depends-on "log4e")
 (depends-on "posframe")
 (depends-on "named-timer")
+(depends-on "show-eol")
 
 (development
  (depends-on "ic"))

@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'ht)
+(require 'show-eol)
 
 ;;
 ;;; Externals

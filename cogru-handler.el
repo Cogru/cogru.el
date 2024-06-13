@@ -181,7 +181,8 @@
   (let* ((success (cogru--success-p data))
          (file     (ht-get data "file"))
          (file     (ignore-errors (expand-file-name file cogru--path)))
-         (contents (ht-get data "contents")))
+         (contents (ht-get data "contents"))
+         (msg      (ht-get data "message")))
     (cond (success
            (cogru-write-file file contents))
           (t (message msg)))))
