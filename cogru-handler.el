@@ -96,6 +96,14 @@
       (cogru-send `((method  . "room::broadcast")
                     (message . ,msg))))))
 
+(defun cogru-say ()
+  "Say something."
+  (interactive)
+  (cogru--ensure-connected
+    (let ((msg (read-string "Say: ")))
+      (cogru-send `((method  . "file::say")
+                    (message . ,msg))))))
+
 (defun cogru-sync-room ()
   "Sync room files."
   (interactive)
@@ -208,9 +216,14 @@
     (message "%s" clients)
     ))
 
-(defun cogru--handle-file-say (_data)
+(defun cogru--handle-file-say (data)
   "Handle the `file::say' event from DATA."
-  )
+  (let* ((username (ht-get data "username"))
+         (msg      (ht-get data "message"))
+         (success  (cogru--success-p data)))
+    ;; TODO: ..
+    (cogru-print username msg success)
+    ))
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here
