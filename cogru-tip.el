@@ -88,8 +88,10 @@ STRING is the content of the toolip.  The location POINT.  TIMEOUT for not
 forever delay."
   (let* ((bg cogru-tip-background-color)
          (fg cogru-tip-foreground-color)
+         (buffer-name (format "*cogru: %s*" buffer-name))
          (fringe-width 10)
          (timer-name (intern buffer-name)))
+    (posframe-hide buffer-name) ; hide before using it.
     (posframe-show
      buffer-name
      :string string :position point

@@ -25,6 +25,7 @@
 (require 'ht)
 
 (require 'cogru-util)
+(require 'cogru-tip)
 (require 'cogru-mode)
 
 ;;
@@ -92,6 +93,15 @@
     (let ((msg (read-string "Message you want to broadcast: ")))
       (cogru-send `((method  . "room::broadcast")
                     (message . ,msg))))))
+
+(defun cogru-say ()
+  "Say something in the file space."
+  (interactive)
+  (cogru--ensure-connected
+    (let ((msg (read-string "Message you want to say: ")))
+      (cogru-send `((method  . "file::say")
+                    (message . ,msg)
+                    (file    . ,(buffer-file-name)))))))
 
 (defun cogru-sync-room ()
   "Sync room files."
