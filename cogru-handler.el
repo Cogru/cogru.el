@@ -25,7 +25,6 @@
 (require 'ht)
 
 (require 'cogru-util)
-(require 'cogru-mode)
 
 ;;
 ;;; Externals
@@ -35,6 +34,10 @@
 (defvar cogru--path)
 
 (declare-function cogru-send "cogru-handler.el")
+
+(declare-function cogru--ensure-connected "cogru.el")
+(declare-function cogru--ensure-entered "cogru.el")
+(declare-function cogru--ensure-under-path "cogru.el")
 
 (declare-function cogru-client-create "cogru.el")
 (declare-function cogru-client-username "cogru.el")

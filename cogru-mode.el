@@ -26,7 +26,7 @@
 
 (require 'named-timer)
 
-(require 'cogru-util)
+(require 'cogru)
 
 (defcustom cogru-interval 0.4
   "Interval in seconds between updating each frames."
