@@ -247,6 +247,7 @@ First message we send to the server."
                  ("room::users"     #'cogru--handle-room-users)
                  ("room::sync"      #'cogru--handle-room-sync)
                  ("file::save"      #'cogru--handle-file-save)
+                 ("file::sync"      #'cogru--handle-file-sync)
                  ("file::users"     #'cogru--handle-file-users)
                  ("file::say"       #'cogru--handle-file-say)
                  (_ (cogru-print "[Cogru] Unknown action to handle: %s" method)))))

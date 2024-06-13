@@ -103,9 +103,9 @@
 (defun cogru-sync-file ()
   "Sync single file."
   (interactive)
-  (cogru--ensure-connected
-    ;; TODO: ..
-    ))
+  (cogru--ensure-under-path
+    (cogru-send `((method . "file::sync")
+                  (file   . ,(buffer-file-name))))))
 
 ;;
 ;;; Response
@@ -183,6 +183,16 @@
          (file     (ignore-errors (expand-file-name file cogru--path)))
          (contents (ht-get data "contents"))
          (msg      (ht-get data "message")))
+    (cond (success
+           (cogru-write-file file contents))
+          (t (message msg)))))
+
+(defun cogru--handle-file-sync (data)
+  "Handle the `file::sync' event from DATA."
+  (let* ((file     (ht-get data "file"))
+         (contents (ht-get data "contents"))
+         (msg      (ht-get data "message"))
+         (success  (cogru--success-p data)))
     (cond (success
            (cogru-write-file file contents))
           (t (message msg)))))

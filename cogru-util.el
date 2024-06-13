@@ -35,6 +35,8 @@
 (defvar cogru--process)
 (defvar cogru--path)
 
+(defvar lsp-inhibit-lsp-hooks)
+
 ;;
 ;;; Network
 
@@ -118,6 +120,13 @@ The argument POSITION is the point."
   (cond ((eq 'dos (show-eol-get-current-system))
          (s-replace "\n" "\r\n" str))
         (t str)))
+
+(defun cogru-insert (&rest args)
+  "Insert STR to buffer."
+  (let ((lsp-inhibit-lsp-hooks t)
+        (after-change-functions)
+        (before-change-functions))
+    (apply #'insert args)))
 
 ;;
 ;;; IO
