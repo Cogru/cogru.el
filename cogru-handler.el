@@ -176,6 +176,16 @@
            (cogru-write-file path contents))
           (t (message msg)))))
 
+(defun cogru--handle-file-save (data)
+  "Handle the `file::save' event from DATA."
+  (let* ((success (cogru--success-p data))
+         (file     (ht-get data "file"))
+         (file     (ignore-errors (expand-file-name file cogru--path)))
+         (contents (ht-get data "contents")))
+    (cond (success
+           (cogru-write-file file contents))
+          (t (message msg)))))
+
 (defun cogru--handle-file-users (data)
   "Handle the `file::users' event from DATA."
   (when-let* (((cogru--success-p data))

@@ -59,6 +59,15 @@
 ;;
 ;;; Entry
 
+(defvar cogru--starting-p nil
+  "Record state of starting the client.")
+
+(defun cogru-mode--post-command ()
+  "Disable `cogru-mode' when the starting operation is cancelled."
+  (unless cogru--starting-p
+    (unless (cogru--connected-p) (cogru-mode -1))
+    (remove-hook 'post-command-hook #'cogru-mode--post-command)))
+
 ;;;###autoload
 (define-minor-mode cogru-mode
   "Minor mode `cogru-mode'."
@@ -69,7 +78,9 @@
 
 (defun cogru-mode--enable ()
   "Enable `cogru-mode'."
-  (unless (cogru--connected-p) (cogru-start))
+  (add-hook 'post-command-hook #'cogru-mode--post-command)
+  (let ((cogru--starting-p t))
+    (unless (cogru--connected-p) (cogru-start)))
   (cogru--ensure-connected
     (named-timer-run cogru--update-timer-name nil cogru-interval
                      #'cogru--update)
