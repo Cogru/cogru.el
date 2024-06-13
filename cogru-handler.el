@@ -33,7 +33,8 @@
 (defvar cogru--clients)
 (defvar cogru--path)
 
-(declare-function cogru-send "cogru-handler.el")
+(declare-function cogru-send "cogru.el")
+(declare-function cogru-print "cogru.el")
 
 (declare-function cogru--ensure-connected "cogru.el")
 (declare-function cogru--ensure-entered "cogru.el")
@@ -99,10 +100,11 @@
 (defun cogru-say ()
   "Say something."
   (interactive)
-  (cogru--ensure-connected
+  (cogru--ensure-under-path
     (let ((msg (read-string "Say: ")))
       (cogru-send `((method  . "file::say")
-                    (message . ,msg))))))
+                    (message . ,msg)
+                    (file    . ,(buffer-file-name)))))))
 
 (defun cogru-sync-room ()
   "Sync room files."
