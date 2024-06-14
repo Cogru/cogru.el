@@ -29,7 +29,6 @@
 (require 'named-timer)
 
 (require 'cogru-util)
-(require 'cogru-mode)
 
 (defcustom cogru-tip-delay 3.0
   "Background color string."
