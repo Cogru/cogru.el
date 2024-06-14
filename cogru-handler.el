@@ -25,6 +25,7 @@
 (require 'ht)
 
 (require 'cogru-util)
+(require 'cogru-tip)
 
 ;;
 ;;; Externals
@@ -223,9 +224,10 @@
   (let* ((username (ht-get data "username"))
          (msg      (ht-get data "message"))
          (success  (cogru--success-p data)))
-    ;; TODO: ..
-    (cogru-print username msg success)
-    ))
+    (cond (success
+           ;; TODO: Display at the user's point!
+           (cogru-tip-create username msg))
+          (t (message msg)))))
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here
