@@ -25,56 +25,20 @@
 ;;; Code:
 
 (require 'ht)
+(require 's)
 (require 'show-eol)
 
 ;;
 ;;; Externals
-
-(defvar cogru-host)
-(defvar cogru-port)
-(defvar cogru--process)
-(defvar cogru--path)
 
 (defvar lsp-inhibit-lsp-hooks)
 
 ;;
 ;;; Network
 
-(defun cogru-address ()
-  "Return the address name."
-  (format "http://%s:%s" cogru-host cogru-port))
-
-(defun cogru--connected-p ()
-  "Return non-nil when is connected."
-  (process-live-p cogru--process))
-
 (defun cogru--success-p (data)
   "Return success status from DATA."
   (string= (ht-get data "status") "success"))
-
-(defmacro cogru--ensure-connected (&rest body)
-  "Run BODY only if connection is established."
-  (declare (indent 0))
-  `(cond
-    ((cogru--connected-p) ,@body)
-    ((not cogru-mode))  ; Do nothing
-    (t
-     (cogru-mode -1)  ; This will clean up the variable `cogru--client' too!
-     (message (concat "[Cogru] No connection being established; "
-                      "try `M-x cogru-start` to connect to the server")))))
-
-(defmacro cogru--ensure-entered (&rest body)
-  "Run BODY only if client is established."
-  (declare (indent 0))
-  `(cogru--ensure-connected
-     (when cogru--client ,@body)))
-
-(defmacro cogru--ensure-under-path (&rest body)
-  "Run BODY only if client is under session path."
-  (declare (indent 0))
-  `(cogru--ensure-connected
-     (cogru--ensure-entered
-       (when (cogru--under-path-p) ,@body))))
 
 ;;
 ;;; I/O
@@ -90,14 +54,6 @@
     ;; Print status
     (if exists (message "Overwrote file %s" path)
       (message "Wrote file %s" path))))
-
-;;
-;;; Project
-
-(defun cogru--under-path-p (&optional path)
-  "Return non-nil if the PATH is under the workspace."
-  (when-let ((path (or path (buffer-file-name))))
-    (string-prefix-p cogru--path path t)))
 
 ;;
 ;;; String

@@ -35,7 +35,12 @@
 (defvar cogru--clients)
 (defvar cogru--path)
 
-(declare-function cogru-send "cogru-handler.el")
+(declare-function cogru-send "cogru.el")
+(declare-function cogru-print "cogru.el")
+
+(declare-function cogru--ensure-connected "cogru.el")
+(declare-function cogru--ensure-entered "cogru.el")
+(declare-function cogru--ensure-under-path "cogru.el")
 
 (declare-function cogru-client-create "cogru.el")
 (declare-function cogru-client-username "cogru.el")
@@ -95,10 +100,17 @@
                     (message . ,msg))))))
 
 (defun cogru-say ()
+<<<<<<< HEAD
   "Say something in the file space."
   (interactive)
   (cogru--ensure-connected
     (let ((msg (read-string "Message you want to say: ")))
+=======
+  "Say something."
+  (interactive)
+  (cogru--ensure-under-path
+    (let ((msg (read-string "Say: ")))
+>>>>>>> 4e41f124c03ceb84e4c4c411c559ecd5a72584b1
       (cogru-send `((method  . "file::say")
                     (message . ,msg)
                     (file    . ,(buffer-file-name)))))))
@@ -215,9 +227,15 @@
     (message "%s" clients)
     ))
 
-(defun cogru--handle-file-say (_data)
+(defun cogru--handle-file-say (data)
   "Handle the `file::say' event from DATA."
-  )
+  (let* ((username (ht-get data "username"))
+         (msg      (ht-get data "message"))
+         (success  (cogru--success-p data)))
+    (cond (success
+           ;; TODO: Display at the user's point!
+           (cogru-tip-create username msg))
+          (t (message msg)))))
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here

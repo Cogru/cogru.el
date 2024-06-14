@@ -109,28 +109,5 @@ forever delay."
                      (lambda () (posframe-hide buffer-name)))
     t))
 
-;;
-;;; Request
-
-(defun cogru-say ()
-  "Say something."
-  (interactive)
-  (cogru--ensure-connected
-    (let ((msg (read-string "Say: ")))
-      (cogru-send `((method  . "file::say")
-                    (message . ,msg))))))
-
-;;
-;;; Response
-
-(defun cogru--handle-file-say (data)
-  "Handle the `say' event from DATA."
-  (let* ((username (ht-get data "username"))
-         (msg      (ht-get data "message"))
-         (success  (cogru--success-p data)))
-    ;; TODO: ..
-    (cogru-print username msg success)
-    ))
-
 (provide 'cogru-tip)
 ;;; cogru-tip.el ends here
