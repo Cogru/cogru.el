@@ -26,7 +26,6 @@
 
 (require 'cogru-util)
 (require 'cogru-tip)
-(require 'cogru-mode)
 
 ;;
 ;;; Externals
@@ -100,17 +99,10 @@
                     (message . ,msg))))))
 
 (defun cogru-say ()
-<<<<<<< HEAD
-  "Say something in the file space."
-  (interactive)
-  (cogru--ensure-connected
-    (let ((msg (read-string "Message you want to say: ")))
-=======
   "Say something."
   (interactive)
   (cogru--ensure-under-path
     (let ((msg (read-string "Say: ")))
->>>>>>> 4e41f124c03ceb84e4c4c411c559ecd5a72584b1
       (cogru-send `((method  . "file::say")
                     (message . ,msg)
                     (file    . ,(buffer-file-name)))))))
