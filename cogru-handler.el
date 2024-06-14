@@ -80,17 +80,19 @@
   "Kick someone out of the room."
   (interactive)
   (cogru--ensure-connected
-    ;; TODO: Fill in completing candidates.
-    (let ((username (completing-read "Kick the user: " nil)))
-      (cogru-send `((method   . "room::kick")
-                    (admin    . ,(cogru-client-username cogru--client))
-                    (username . ,username))))))
+    (when (yes-or-no-p (concat "Kick other user may make them lose thier work; "
+                               "are you sure you want to proceed? "))
+      (let* ((usernames (cogru-client-usernames))
+             (username (completing-read "Kick the user: " usernames)))
+        (cogru-send `((method   . "room::kick")
+                      (admin    . ,(cogru-client-username cogru--client))
+                      (username . ,username)))))))
 
 (defun cogru-broadcast ()
   "Broadcast across the room."
   (interactive)
   (cogru--ensure-connected
-    (let ((msg (read-string "Message you want to broadcast: ")))
+    (let ((msg (read-string "Broadcast: ")))
       (cogru-send `((method  . "room::broadcast")
                     (message . ,msg))))))
 

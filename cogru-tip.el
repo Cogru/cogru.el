@@ -29,6 +29,7 @@
 (require 'named-timer)
 
 (require 'cogru-util)
+(require 'cogru-client)
 
 (defcustom cogru-tip-delay 3.0
   "Background color string."
@@ -85,28 +86,39 @@
 
 STRING is the content of the toolip.  The location POINT.  TIMEOUT for not
 forever delay."
-  (let* ((bg cogru-tip-background-color)
-         (fg cogru-tip-foreground-color)
-         (buffer-name (format "*cogru: %s*" buffer-name))
-         (fringe-width 10)
-         (timer-name (intern buffer-name)))
-    (posframe-hide buffer-name) ; hide before using it.
-    (posframe-show
-     buffer-name
-     :string string :position point
-     :timeout timeout
-     :background-color bg :foreground-color fg
-     :internal-border-width 1
-     :internal-border-color (face-foreground 'font-lock-comment-face nil t)
-     :left-fringe fringe-width :right-fringe fringe-width
-     :override-parameters
-     (append cogru-tip-frame-parameters
-             `((default-minibuffer-frame . ,(selected-frame))
-               (minibuffer               . ,(minibuffer-window))))
-     :accept-focus t)
+  (let*
+      ((bg cogru-tip-background-color)
+       (fg cogru-tip-foreground-color)
+       (buffer-name (format "*cogru::%s*" buffer-name))
+       (fringe-width 10)
+       (timer-name (intern buffer-name))
+       (frame (posframe-show
+               buffer-name
+               :string string :position point
+               :timeout timeout
+               :background-color bg :foreground-color fg
+               :internal-border-width 1
+               :internal-border-color (face-foreground 'font-lock-comment-face
+                                                       nil t)
+               :left-fringe fringe-width :right-fringe fringe-width
+               :override-parameters
+               (append cogru-tip-frame-parameters
+                       `((default-minibuffer-frame . ,(selected-frame))
+                         (minibuffer               . ,(minibuffer-window)))))))
     (named-timer-run timer-name cogru-tip-delay nil
                      (lambda () (posframe-hide buffer-name)))
-    t))
+    frame))
+
+;;
+;;; Actions
+
+(defun cogru-tip-client-say (client msg)
+  "Show the tip MSG said by CLIENT."
+  (let* ((username (cogru-client-username client))
+         (point (cogru-client-point client))
+         (frame (cogru-tip-create username msg point)))
+    ;; TODO: ..
+    frame))
 
 (provide 'cogru-tip)
 ;;; cogru-tip.el ends here

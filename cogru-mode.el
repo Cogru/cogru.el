@@ -156,7 +156,7 @@
 
 (defun cogru--post-command ()
   "Post command hook."
-  (cogru-client-update)
+  (cogru-client-send-info)  ; send the status info
   (cogru--ensure-entered
     (let ((path         (cogru-client-path cogru--client))
           (point        (cogru-client-point cogru--client))

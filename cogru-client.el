@@ -49,10 +49,29 @@
 (declare-function cogru--under-path-p "cogru.el")
 
 ;;
+;;; Properties
+
+(defun cogru-client--get-properties (name &optional this)
+  "Get a list of property NAME including THIS."
+  (let ((props)
+        (func (intern (format "cogru-client-%s" name))))
+    (unless (fboundp func)
+      (error "[Cogru] Unknown property name: %s" name))
+    (dolist (client cogru--clients)
+      (push (funcall func client) props))
+    (when this
+      (push (funcall func cogru--client) props))
+    props))
+
+(defun cogru-client-usernames (&optional this)
+  "Get a list of username including THIS."
+  (cogru-client--get-properties "username" this))
+
+;;
 ;;; Core
 
-(defun cogru-client-update ()
-  "Update the current client's information once."
+(defun cogru-client-send-info ()
+  "Keep the server's information up to date regarding this client."
   (when cogru--client
     (let* ((use-region (use-region-p))
            (path (and (cogru--under-path-p)
