@@ -42,19 +42,11 @@
 ;;
 ;;; Externals
 
-(defvar cogru--client)
-(defvar cogru--clients)
 (defvar cogru--path)
 
 (declare-function cogru-start "cogru.el")
 (declare-function cogru-stop "cogru.el")
 (declare-function cogru-send "cogru.el")
-
-(declare-function cogru-client-point "cogru.el")
-(declare-function cogru-client-path "cogru.el")
-(declare-function cogru-client-region-start "cogru.el")
-(declare-function cogru-client-region-end "cogru.el")
-(declare-function cogru-client-update "cogru.el")
 
 ;;
 ;;; Entry
@@ -98,6 +90,42 @@
   (remove-hook 'post-command-hook #'cogru--post-command)
   (remove-hook 'after-save-hook #'cogru--after-save)
   (cogru-stop))
+
+;;
+;;; Client
+
+(cl-defstruct (cogru-client
+               (:constructor cogru-client-create))
+  "The client implementation."
+  username
+  entered
+  admin
+  path
+  point
+  region-start
+  region-end)
+
+(defvar cogru--client nil
+  "Local client represent self.")
+
+(defvar cogru--clients nil
+  "List of simulated clients.")
+
+(defun cogru-client-update ()
+  "Update the current client's information once."
+  (when cogru--client
+    (let* ((use-region (use-region-p))
+           (path (and (cogru--under-path-p)
+                      (buffer-file-name)))
+           (point (cogru-point))
+           (region-beg (and use-region
+                            (cogru-region-start)))
+           (region-end (and use-region
+                            (cogru-region-end))))
+      (setf (cogru-client-path cogru--client) path)
+      (setf (cogru-client-point cogru--client) point)
+      (setf (cogru-client-region-start cogru--client) region-beg)
+      (setf (cogru-client-region-end cogru--client) region-end))))
 
 ;;
 ;;; Core

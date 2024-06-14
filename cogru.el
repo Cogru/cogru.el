@@ -76,6 +76,8 @@
 ;;; Extenrals
 
 (defvar cogru-mode)
+(defvar cogru--client)
+(defvar cogru--clients)
 
 (declare-function cogru-mode "cogru-mode.el")
 
@@ -144,38 +146,6 @@
   `(cogru--ensure-connected
      (cogru--ensure-entered
        (when (cogru--under-path-p) ,@body))))
-
-;;
-;;; Client
-
-(cl-defstruct (cogru-client
-               (:constructor cogru-client-create))
-  "The client implementation."
-  username
-  entered
-  admin
-  path
-  point
-  region-start
-  region-end)
-
-(defvar cogru--client nil
-  "Local client represent self.")
-
-(defvar cogru--clients nil
-  "List of simulated clients.")
-
-(defun cogru-client-update ()
-  "Update the client once."
-  (when cogru--client
-    (let ((use-region (use-region-p)))
-      (setf (cogru-client-path cogru--client) (and (cogru--under-path-p)
-                                                   (buffer-file-name)))
-      (setf (cogru-client-point cogru--client) (point))
-      (setf (cogru-client-region-start cogru--client) (and use-region
-                                                           (region-beginning)))
-      (setf (cogru-client-region-end cogru--client) (and use-region
-                                                         (region-end))))))
 
 ;;
 ;;; Core

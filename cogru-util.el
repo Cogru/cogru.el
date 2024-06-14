@@ -62,15 +62,6 @@
   "Convert OBJ to string."
   (format "%s" obj))
 
-(defun cogru-position-bytes (position)
-  "Like function `position-bytes' but handle window line endings.
-
-The argument POSITION is the point."
-  (+ (position-bytes position)
-     (if (eq 'dos (show-eol-get-current-system))
-         (how-many "\n" 1 position)
-       0)))
-
 (defun cogru-str-le (str)
   "Handle STR line endings."
   (cond ((eq 'dos (show-eol-get-current-system))
@@ -125,6 +116,30 @@ The argument POSITION is the point."
     (insert json-string)
     (goto-char (point-min))
     (cogru--json-read-buffer)))
+
+;;
+;;; Point
+
+(defun cogru-position-bytes (position)
+  "Like function `position-bytes' but handle window line endings.
+
+The argument POSITION is the point."
+  (+ (position-bytes position)
+     (if (eq 'dos (show-eol-get-current-system))
+         (how-many "\n" 1 position)
+       0)))
+
+(defun cogru-point ()
+  "Return point in bytes space."
+  (cogru-position-bytes (point)))
+
+(defun cogru-region-start ()
+  "Return region start point in bytes space."
+  (cogru-position-bytes (region-beginning)))
+
+(defun cogru-region-end ()
+  "Return region end point in bytes space."
+  (cogru-position-bytes (region-end)))
 
 (provide 'cogru-util)
 ;;; cogru-util.el ends here
