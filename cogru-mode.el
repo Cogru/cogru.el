@@ -26,6 +26,7 @@
 
 (require 'named-timer)
 
+(require 'cogru-client)
 (require 'cogru)
 
 (defcustom cogru-interval 0.4
@@ -92,42 +93,6 @@
   (cogru-stop))
 
 ;;
-;;; Client
-
-(cl-defstruct (cogru-client
-               (:constructor cogru-client-create))
-  "The client implementation."
-  username
-  entered
-  admin
-  path
-  point
-  region-start
-  region-end)
-
-(defvar cogru--client nil
-  "Local client represent self.")
-
-(defvar cogru--clients nil
-  "List of simulated clients.")
-
-(defun cogru-client-update ()
-  "Update the current client's information once."
-  (when cogru--client
-    (let* ((use-region (use-region-p))
-           (path (and (cogru--under-path-p)
-                      (buffer-file-name)))
-           (point (cogru-point))
-           (region-beg (and use-region
-                            (cogru-region-start)))
-           (region-end (and use-region
-                            (cogru-region-end))))
-      (setf (cogru-client-path cogru--client) path)
-      (setf (cogru-client-point cogru--client) point)
-      (setf (cogru-client-region-start cogru--client) region-beg)
-      (setf (cogru-client-region-end cogru--client) region-end))))
-
-;;
 ;;; Core
 
 (defun cogru--update ()
@@ -175,7 +140,7 @@
                 (add-or-delete (nth 0 data))
                 (beg           (1- (cogru-position-bytes (nth 1 data))))
                 (end           (if (string= add-or-delete "delete")
-                                   cogru--befor-end
+                                   cogru--befor-end  ; Use before for deletion
                                  (1- (cogru-position-bytes (nth 2 data)))))
                 (contents      (nth 3 data))
                 (path          (cogru-client-path cogru--client)))

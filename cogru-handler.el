@@ -26,12 +26,11 @@
 
 (require 'cogru-util)
 (require 'cogru-tip)
+(require 'cogru-client)
 
 ;;
 ;;; Externals
 
-(defvar cogru--client)
-(defvar cogru--clients)
 (defvar cogru--path)
 
 (declare-function cogru-send "cogru.el")
@@ -40,9 +39,6 @@
 (declare-function cogru--ensure-connected "cogru.el")
 (declare-function cogru--ensure-entered "cogru.el")
 (declare-function cogru--ensure-under-path "cogru.el")
-
-(declare-function cogru-client-create "cogru.el")
-(declare-function cogru-client-username "cogru.el")
 
 ;;
 ;;; Request
@@ -225,8 +221,10 @@
          (msg      (ht-get data "message"))
          (success  (cogru--success-p data)))
     (cond (success
-           ;; TODO: Display at the user's point!
-           (cogru-tip-create username msg))
+           (if-let* ((client (cogru-client-by-username username))
+                     (point (cogru-client-point client)))
+               (cogru-tip-create username msg point)
+             (message "Try to display `file::say' message but client not found")))
           (t (message msg)))))
 
 (provide 'cogru-handler)
