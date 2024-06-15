@@ -147,6 +147,12 @@
      (cogru--ensure-entered
        (when (cogru--under-path-p) ,@body))))
 
+(defmacro cogru--ensure-under-file (file &rest body)
+  "Run BODY only if client is under session FILE."
+  (declare (indent 1))
+  `(cogru--ensure-under-path
+     (when (equal file (buffer-file-name)) ,@body)))
+
 ;;
 ;;; Core
 

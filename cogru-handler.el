@@ -204,15 +204,11 @@
          (end           (cogru-decode-point end))
          (contents      (ht-get data "contents")))
     (cond (success
-           (cogru--ensure-under-path
+           (cogru--ensure-under-file file
              (cogru--safe-edit
                (pcase add-or-delete
-                 ("add"
-                  (save-excursion
-                    (goto-char beg)
-                    (insert contents)))
-                 ("delete"
-                  (delete-region beg end))))))
+                 ("add"    (save-excursion (goto-char beg) (insert contents)))
+                 ("delete" (delete-region beg end))))))
           (t (message "Error occurs in `file::update' handler")))))
 
 (defun cogru--handle-file-save (data)

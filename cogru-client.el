@@ -84,6 +84,13 @@
       (setf (cogru-client-region-beg cogru--client) region-beg)
       (setf (cogru-client-region-end cogru--client) region-end))))
 
+(defun cogru-client--render-clients ()
+  "Render clients."
+  (cogru--ensure-connected
+    (when cogru--clients
+
+      )))
+
 (defun cogru-client-by-username (username)
   "Return the client by USERNAME."
   (cond ((equal username (cogru-client-username cogru--client))
