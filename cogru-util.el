@@ -43,20 +43,25 @@
 (defun cogru--get-file (data)
   "Return file from DATA."
   (when-let* ((file (ht-get data "file"))
-              (file (if (file-exists-p file) file
-                      (ignore-errors (expand-file-name file cogru--path)))))
+              (file (ignore-errors (expand-file-name file cogru--path))))
     file))
 
 ;;
 ;;; I/O
 
+(defmacro cogru--ensure-coding-system (&rest body)
+  "Run BODY with correct coding system."
+  (declare (indent 0))
+  `(let ((buffer-file-coding-system 'undecided-unix)
+         (coding-system-for-write)
+         (last-coding-system-used 'utf-8))
+     ,@body))
+
 (defun cogru-write-file (path contents)
   "Write CONTENTS to PATH."
   (let ((exists (ignore-errors (file-exists-p path))))
     (ignore-errors (make-directory (file-name-directory path) t))
-    (let ((buffer-file-coding-system 'undecided-unix)
-          (coding-system-for-write)
-          (last-coding-system-used 'utf-8))
+    (cogru--ensure-coding-system
       (msgu-silent (write-region contents nil path)))
     ;; Print status
     (if exists (message "Overwrote file %s" path)
@@ -81,10 +86,22 @@
   `(let ((lsp-inhibit-lsp-hooks t)
          (after-change-functions)
          (before-change-functions)
-         (buffer-undo-list)
+         ;;(buffer-undo-list)
          (jit-lock-functions))
      (elenv-with-no-redisplay
        ,@body)))
+
+(defun cogru--replace-buffer-contents (str)
+  "Wrap function `replace-buffer-contents'
+
+Replace current buffer contents with STR."
+  (let ((tmp (get-buffer-create " *temp*")))
+    (with-current-buffer tmp
+      (cogru--ensure-coding-system
+        (insert str)))
+    (cogru--safe-edit
+      (replace-buffer-contents tmp))
+    (kill-buffer tmp)))
 
 (defun cogru-insert (&rest args)
   "Insert STR to buffer."

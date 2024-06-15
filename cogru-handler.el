@@ -197,9 +197,9 @@
          (file          (cogru--get-file data))
          (add-or-delete (ht-get data "add_or_delete"))
          (beg           (ht-get data "beg"))
-         (beg           (cogru-re-point beg))
+         (beg           (1+ (cogru-re-point beg)))
          (end           (ht-get data "end"))
-         (end           (cogru-re-point end))
+         (end           (1+ (cogru-re-point end)))
          (contents      (ht-get data "contents")))
     (cond (success
            (cogru--ensure-under-path
@@ -235,18 +235,9 @@
 
 (defun cogru--handle-file-info (data)
   "Handle the `file::info' event from DATA."
-  (let* (((cogru--success-p data))
-         (file     (cogru--get-file data))
-         (contents (ht-get data "contents"))
+  (let* ((success  (cogru--success-p data))
          (clients  (ht-get data "clients"))
-         (clients  (cogru--json-read-from-string clients))
-         (current-file ))
-    (when-let* ((current-file (buffer-file-name))
-                ((equal current-file file)))
-      (cogru--safe-edit
-        (erase-buffer)
-        (insert contents)))
-    ;;(message "%s" clients)
+         (clients  (cogru--json-read-from-string clients)))
     (mapc (lambda (client)
             ;; TODO: Collect all client's data!
             )
