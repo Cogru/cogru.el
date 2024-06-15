@@ -136,7 +136,11 @@ Convert byte position to text point."
   (byte-to-position
    (- position
       (if (eq 'dos (show-eol-get-current-system))
-          (how-many "\n" 1 (point))
+          (let ((buf (buffer-string)))
+            (with-temp-buffer
+              (insert (s-replace "\n" "\r\n" buf))
+              (how-many "\n" 1 (byte-to-position position))))
+
         0))))
 
 (defun cogru-point ()

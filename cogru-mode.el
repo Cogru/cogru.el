@@ -178,7 +178,9 @@
       ;; Flag to clean up the client info once before stop
       ;; sending further more data.
       (unless path
-        (setq cogru--cleared-client-p t)))))
+        (setq cogru--cleared-client-p t))))
+  (cogru--ensure-under-path
+    (cogru-tip--post-command)))
 
 (provide 'cogru-mode)
 ;;; cogru-mode.el ends here

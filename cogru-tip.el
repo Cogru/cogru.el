@@ -79,9 +79,23 @@
 (declare-function cogru-print "cogru.el")
 
 ;;
+;;; Util
+
+(defun cogru-tip--buffer-name (name)
+  "Return the buffer name for NAME."
+  (format "*cogru::%s*" name))
+
+(defun cogru-tip-contents (buffer-name)
+  "Return frame's contents by BUFFER-NAME."
+  (with-current-buffer (cogru-tip--buffer-name buffer-name) (buffer-string)))
+
+;;
 ;;; Core
 
-(cl-defun cogru-tip-create (buffer-name string point &key (timeout 300))
+(cl-defun cogru-tip-show ( buffer-name string point
+                           &key
+                           (timeout 300)
+                           (hide t))
   "Pop up an tooltip (BUFFER-NAME) depends on the graphic used.
 
 STRING is the content of the toolip.  The location POINT.  TIMEOUT for not
@@ -89,7 +103,7 @@ forever delay."
   (let*
       ((bg cogru-tip-background-color)
        (fg cogru-tip-foreground-color)
-       (buffer-name (format "*cogru::%s*" buffer-name))
+       (buffer-name (cogru-tip--buffer-name buffer-name))
        (fringe-width 10)
        (timer-name (intern buffer-name))
        (frame (posframe-show
@@ -105,9 +119,27 @@ forever delay."
                (append cogru-tip-frame-parameters
                        `((default-minibuffer-frame . ,(selected-frame))
                          (minibuffer               . ,(minibuffer-window)))))))
-    (named-timer-run timer-name cogru-tip-delay nil
-                     (lambda () (posframe-hide buffer-name)))
+    ;; Start hide timer.
+    (when hide
+      (named-timer-run timer-name cogru-tip-delay nil
+                       (lambda () (posframe-hide buffer-name))))
     frame))
+
+(defun cogru-tip-move (buffer-name point)
+  "Move the posframe by BUFFER-NAME to POINT."
+  (let ((contents (cogru-tip-contents buffer-name)))  ; Retrieved original contents!
+    (cogru-tip-show buffer-name contents point :hide nil)))
+
+;;
+;;; Core
+
+(defun cogru-tip--post-command ()
+  "Post command hook for tip."
+  (when-let* ((frame-data (cogru-client-frame-name-dialogue cogru--client))
+              (buffer-name (car frame-data))
+              (frame (cdr frame-data))
+              ((frame-visible-p frame)))  ; Only effect visible frame!
+    (cogru-tip-move buffer-name (point))))
 
 ;;
 ;;; Actions
@@ -115,10 +147,11 @@ forever delay."
 (defun cogru-tip-client-say (client msg)
   "Show the tip MSG said by CLIENT."
   (let* ((username (cogru-client-username client))
+         (buffer-name (format "say::%s" username))
          (point (cogru-client-point client))
-         (frame (cogru-tip-create username msg point)))
-    ;; TODO: ..
-    frame))
+         (point (cogru-re-point point))
+         (frame (cogru-tip-show buffer-name msg point)))
+    (setf (cogru-client-frame-name-dialogue client) (cons buffer-name frame))))
 
 (provide 'cogru-tip)
 ;;; cogru-tip.el ends here

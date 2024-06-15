@@ -34,8 +34,8 @@
   admin
   path
   point
-  region-start
-  region-end)
+  region-start region-end
+  frame-name-dialogue)
 
 (defvar cogru--client nil
   "Local client represent self.")

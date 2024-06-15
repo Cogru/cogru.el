@@ -223,9 +223,8 @@
          (msg      (ht-get data "message"))
          (success  (cogru--success-p data)))
     (cond (success
-           (if-let* ((client (cogru-client-by-username username))
-                     (point (cogru-client-point client)))
-               (cogru-tip-create username msg point)
+           (if-let ((client (cogru-client-by-username username)))
+               (cogru-tip-client-say client msg)
              (message "Try to display `file::say' message but client not found")))
           (t (message msg)))))
 
