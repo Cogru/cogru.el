@@ -129,6 +129,16 @@ The argument POSITION is the point."
          (how-many "\n" 1 position)
        0)))
 
+(defun cogru-re-point (position)
+  "Reverse formula of the function `cogru-position-bytes'.
+
+Convert byte position to text point."
+  (byte-to-position
+   (- position
+      (if (eq 'dos (show-eol-get-current-system))
+          (how-many "\n" 1 (point))
+        0))))
+
 (defun cogru-point ()
   "Return point in bytes space."
   (cogru-position-bytes (point)))

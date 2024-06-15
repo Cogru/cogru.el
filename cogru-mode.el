@@ -34,6 +34,11 @@
   :type 'number
   :group 'cogru)
 
+(defcustom cogru-update-hook nil
+  "Hooks run after each update."
+  :type 'hook
+  :group 'cogru)
+
 (defconst cogru--update-timer-name (intern "*cogru-timer*")
   "Name of the update timer.")
 
@@ -100,7 +105,8 @@
   (cogru--ensure-under-path
     (cogru-send `((method   . "file::users")
                   (username . ,(cogru-client-username cogru--client))
-                  (file     . ,(buffer-file-name))))))
+                  (file     . ,(buffer-file-name))))
+    (run-hooks 'cogru-update-hook)))
 
 (defun cogru--after-save ()
   "After save hook."
