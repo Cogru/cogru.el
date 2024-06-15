@@ -196,7 +196,7 @@
 (defun cogru--handle-file-update (data)
   "Handle the `file::update' event from DATA."
   (let* ((success       (cogru--success-p data))
-         (file          (cogru--get-file data))  ; TODO: Use this!
+         (file          (cogru--get-file data))
          (add-or-delete (ht-get data "add_or_delete"))
          (beg           (ht-get data "beg"))
          (beg           (cogru-decode-point beg))
