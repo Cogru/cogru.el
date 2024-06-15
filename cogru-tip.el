@@ -136,9 +136,9 @@ forever delay."
 (defun cogru-tip--post-command ()
   "Post command hook for tip."
   (when-let* ((frame-data (cogru-client-frame-name-dialogue cogru--client))
-              (buffer-name (car frame-data))
               (frame (cdr frame-data))
-              ((frame-visible-p frame)))  ; Only effect visible frame!
+              ((frame-visible-p frame))  ; Only effect visible frame!
+              (buffer-name (car frame-data)))
     (cogru-tip-move buffer-name (point))))
 
 ;;
