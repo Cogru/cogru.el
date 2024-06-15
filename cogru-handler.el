@@ -120,7 +120,7 @@
                   (file   . ,(buffer-file-name))))))
 
 ;;
-;;; Response
+;;; Response (Room)
 
 (defun cogru--handle-test (data)
   "Handle the `test' event from DATA."
@@ -188,11 +188,35 @@
            (cogru-write-file path contents))
           (t (message msg)))))
 
+;;
+;;; Response (File)
+
+(defun cogru--handle-file-update (data)
+  "Handle the `file::update' event from DATA."
+  (let* ((success       (cogru--success-p data))
+         (file          (cogru--get-file data))
+         (add-or-delete (ht-get data "add_or_delete"))
+         (beg           (ht-get data "beg"))
+         (beg           (cogru-re-point beg))
+         (end           (ht-get data "end"))
+         (end           (cogru-re-point end))
+         (contents      (ht-get data "contents")))
+    (cond (success
+           (cogru--ensure-under-path
+             (cogru--safe-edit
+               (pcase add-or-delete
+                 ("add"
+                  (save-excursion
+                    (goto-char beg)
+                    (insert contents)))
+                 ("delete"
+                  (delete-region beg end))))))
+          (t (message "Error occurs in `file::update' handler")))))
+
 (defun cogru--handle-file-save (data)
   "Handle the `file::save' event from DATA."
   (let* ((success (cogru--success-p data))
-         (file     (ht-get data "file"))
-         (file     (ignore-errors (expand-file-name file cogru--path)))
+         (file     (cogru--get-file data))
          (contents (ht-get data "contents"))
          (msg      (ht-get data "message")))
     (cond (success
@@ -201,7 +225,7 @@
 
 (defun cogru--handle-file-sync (data)
   "Handle the `file::sync' event from DATA."
-  (let* ((file     (ht-get data "file"))
+  (let* ((file     (cogru--get-file data))
          (contents (ht-get data "contents"))
          (msg      (ht-get data "message"))
          (success  (cogru--success-p data)))
@@ -209,13 +233,24 @@
            (cogru-write-file file contents))
           (t (message msg)))))
 
-(defun cogru--handle-file-users (data)
-  "Handle the `file::users' event from DATA."
-  (when-let* (((cogru--success-p data))
-              (clients (ht-get data "clients"))
-              (clients (cogru--json-read-from-string clients)))
-    (message "%s" clients)
-    ))
+(defun cogru--handle-file-info (data)
+  "Handle the `file::info' event from DATA."
+  (let* (((cogru--success-p data))
+         (file     (cogru--get-file data))
+         (contents (ht-get data "contents"))
+         (clients  (ht-get data "clients"))
+         (clients  (cogru--json-read-from-string clients))
+         (current-file ))
+    (when-let* ((current-file (buffer-file-name))
+                ((equal current-file file)))
+      (cogru--safe-edit
+        (erase-buffer)
+        (insert contents)))
+    ;;(message "%s" clients)
+    (mapc (lambda (client)
+            ;; TODO: Collect all client's data!
+            )
+          clients)))
 
 (defun cogru--handle-file-say (data)
   "Handle the `file::say' event from DATA."

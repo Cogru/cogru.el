@@ -40,6 +40,13 @@
   "Return success status from DATA."
   (string= (ht-get data "status") "success"))
 
+(defun cogru--get-file (data)
+  "Return file from DATA."
+  (when-let* ((file (ht-get data "file"))
+              (file (if (file-exists-p file) file
+                      (ignore-errors (expand-file-name file cogru--path)))))
+    file))
+
 ;;
 ;;; I/O
 
@@ -68,12 +75,20 @@
          (s-replace "\n" "\r\n" str))
         (t str)))
 
+(defmacro cogru--safe-edit (&rest body)
+  "Run BODY with no modification's side effect."
+  (declare (indent 0))
+  `(let ((lsp-inhibit-lsp-hooks t)
+         (after-change-functions)
+         (before-change-functions)
+         (buffer-undo-list)
+         (jit-lock-functions))
+     (elenv-with-no-redisplay
+       ,@body)))
+
 (defun cogru-insert (&rest args)
   "Insert STR to buffer."
-  (let ((lsp-inhibit-lsp-hooks t)
-        (after-change-functions)
-        (before-change-functions))
-    (apply #'insert args)))
+  (cogru--safe-edit (apply #'insert args)))
 
 ;;
 ;;; IO
