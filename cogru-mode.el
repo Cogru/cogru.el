@@ -126,7 +126,7 @@
   (cogru--ensure-under-path
     (unless (= beg end)
       ;; Record end position for deletion!
-      (setq cogru--befor-end (1- (cogru-position-bytes end))))))
+      (setq cogru--befor-end (cogru-encode-point end)))))
 
 (defun cogru--change-data (beg end len)
   "Correct change data calculated by BEG, END and LEN."
@@ -144,10 +144,10 @@
   (cogru--ensure-under-path
     (when-let* ((data          (cogru--change-data beg end len))
                 (add-or-delete (nth 0 data))
-                (beg           (1- (cogru-position-bytes (nth 1 data))))
+                (beg           (cogru-encode-point (nth 1 data)))
                 (end           (if (string= add-or-delete "delete")
                                    cogru--befor-end  ; Use before for deletion
-                                 (1- (cogru-position-bytes (nth 2 data)))))
+                                 (cogru-encode-point (nth 2 data))))
                 (contents      (nth 3 data))
                 (path          (cogru-client-path cogru--client)))
       (cogru-send `((method        . "file::update")
@@ -162,18 +162,21 @@
 
 (defun cogru--post-command ()
   "Post command hook."
-  (cogru-client-send-info)  ; send the status info
+  (cogru-client-update-info)  ; Update status before send.
   (cogru--ensure-entered
-    (let ((path         (cogru-client-path cogru--client))
-          (point        (cogru-client-point cogru--client))
-          (region-start (cogru-client-region-start cogru--client))
-          (region-end   (cogru-client-region-end cogru--client)))
+    (let* ((path       (cogru-client-path cogru--client))
+           (point      (cogru-client-point cogru--client))
+           (point      (cogru-encode-point point))
+           (region-beg (cogru-client-region-beg cogru--client))
+           (region-beg (cogru-encode-point      region-beg))
+           (region-end (cogru-client-region-end cogru--client))
+           (region-end (cogru-encode-point      region-end)))
       (when (or path (not cogru--cleared-client-p))
-        (cogru-send `((method       . "room::update_client")
-                      (path         . ,path)
-                      (point        . ,point)
-                      (region_start . ,region-start)
-                      (region_end   . ,region-end)))
+        (cogru-send `((method     . "room::update_client")
+                      (path       . ,path)
+                      (point      . ,point)
+                      (region_beg . ,region-beg)
+                      (region_end . ,region-end)))
         (setq cogru--cleared-client-p nil))
       ;; Flag to clean up the client info once before stop
       ;; sending further more data.

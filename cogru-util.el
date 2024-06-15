@@ -149,43 +149,41 @@ Replace current buffer contents with STR."
     (goto-char (point-min))
     (cogru--json-read-buffer)))
 
+(defun cogru-encode-point (pos)
+  "Encode POS to server's buffer space."
+  (ignore-errors (1- (cogru-position-bytes pos))))
+
+(defun cogru-decode-point (pos)
+  "Encode POS to client's buffer space."
+  (ignore-errors (cogru-re-point (1+ pos))))
+
 ;;
 ;;; Point
 
-(defun cogru-position-bytes (position)
+(defun cogru-position-bytes (pos)
   "Like function `position-bytes' but handle window line endings.
 
-The argument POSITION is the point."
-  (+ (position-bytes position)
-     (if (eq 'dos (show-eol-get-current-system))
-         (how-many "\n" 1 position)
-       0)))
+The argument POS is the point."
+  (when pos
+    (+ (position-bytes pos)
+       (if (eq 'dos (show-eol-get-current-system))
+           (how-many "\n" 0 pos)
+         0))))
 
-(defun cogru-re-point (position)
+(defun cogru-re-point (pos)
   "Reverse formula of the function `cogru-position-bytes'.
 
-Convert byte position to text point."
-  (byte-to-position
-   (- position
-      (if (eq 'dos (show-eol-get-current-system))
-          (let ((buf (buffer-string)))
-            (with-temp-buffer
-              (insert (s-replace "\n" "\r\n" buf))
-              (how-many "\n" 1 (byte-to-position position))))
-
-        0))))
-
-(defun cogru-point ()
-  "Return point in bytes space."
-  (cogru-position-bytes (point)))
-
-(defun cogru-region-start ()
-  "Return region start point in bytes space."
-  (cogru-position-bytes (region-beginning)))
-
-(defun cogru-region-end ()
-  "Return region end point in bytes space."
-  (cogru-position-bytes (region-end)))
+Convert byte POS to text point."
+  (when pos
+    (byte-to-position
+     (- pos
+        (if (eq 'dos (show-eol-get-current-system))
+            (let* ((buf (buffer-string))
+                   (buf (s-replace "\n" "\r\n" buf)))
+              (with-temp-buffer
+                (insert buf)
+                (how-many "\n" 0 (byte-to-position pos))))
+          0)))))
 
 (provide 'cogru-util)
 ;;; cogru-util.el ends here

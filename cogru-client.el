@@ -34,7 +34,7 @@
   admin
   path
   point
-  region-start region-end
+  region-beg region-end
   frame-name-dialogue)
 
 (defvar cogru--client nil
@@ -70,20 +70,18 @@
 ;;
 ;;; Core
 
-(defun cogru-client-send-info ()
+(defun cogru-client-update-info ()
   "Keep the server's information up to date regarding this client."
   (when cogru--client
     (let* ((use-region (use-region-p))
            (path (and (cogru--under-path-p)
                       (buffer-file-name)))
-           (point (cogru-point))
-           (region-beg (and use-region
-                            (cogru-region-start)))
-           (region-end (and use-region
-                            (cogru-region-end))))
+           (point (point))
+           (region-beg (and use-region (region-beginning)))
+           (region-end (and use-region (region-end))))
       (setf (cogru-client-path cogru--client) path)
       (setf (cogru-client-point cogru--client) point)
-      (setf (cogru-client-region-start cogru--client) region-beg)
+      (setf (cogru-client-region-beg cogru--client) region-beg)
       (setf (cogru-client-region-end cogru--client) region-end))))
 
 (defun cogru-client-by-username (username)

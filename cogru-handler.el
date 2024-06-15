@@ -31,6 +31,8 @@
 ;;
 ;;; Externals
 
+(defvar lsp-inhibit-lsp-hooks)
+
 (defvar cogru--path)
 
 (declare-function cogru-send "cogru.el")
@@ -197,9 +199,9 @@
          (file          (cogru--get-file data))
          (add-or-delete (ht-get data "add_or_delete"))
          (beg           (ht-get data "beg"))
-         (beg           (1+ (cogru-re-point beg)))
+         (beg           (cogru-decode-point beg))
          (end           (ht-get data "end"))
-         (end           (1+ (cogru-re-point end)))
+         (end           (cogru-decode-point end))
          (contents      (ht-get data "contents")))
     (cond (success
            (cogru--ensure-under-path
@@ -238,9 +240,23 @@
   (let* ((success  (cogru--success-p data))
          (clients  (ht-get data "clients"))
          (clients  (cogru--json-read-from-string clients)))
+    (setq cogru--clients nil)  ; clean up
     (mapc (lambda (client)
-            ;; TODO: Collect all client's data!
-            )
+            (let* ((username   (ht-get client "username"))
+                   (path       (ht-get client "path"))
+                   (point      (ht-get client "point"))
+                   (point      (cogru-decode-point point))
+                   (region-beg (ht-get client "region_beg"))
+                   (region-beg (cogru-decode-point region-beg))
+                   (region-end (ht-get client "region_end"))
+                   (region-end (cogru-decode-point region-end)))
+              (ic username path point region-beg region-end)
+              (push (cogru-client-create :username username
+                                         :path path
+                                         :point point
+                                         :region-beg region-beg
+                                         :region-end region-end)
+                    cogru--clients)))
           clients)))
 
 (defun cogru--handle-file-say (data)
