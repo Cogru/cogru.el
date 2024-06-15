@@ -196,7 +196,7 @@
 (defun cogru--handle-file-update (data)
   "Handle the `file::update' event from DATA."
   (let* ((success       (cogru--success-p data))
-         (file          (cogru--get-file data))
+         (file          (cogru--get-file data))  ; TODO: Use this!
          (add-or-delete (ht-get data "add_or_delete"))
          (beg           (ht-get data "beg"))
          (beg           (cogru-decode-point beg))
@@ -237,8 +237,7 @@
 
 (defun cogru--handle-file-info (data)
   "Handle the `file::info' event from DATA."
-  (let* ((success  (cogru--success-p data))
-         (clients  (ht-get data "clients"))
+  (let* ((clients  (ht-get data "clients"))
          (clients  (cogru--json-read-from-string clients)))
     (setq cogru--clients nil)  ; clean up
     (mapc (lambda (client)
