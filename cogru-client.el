@@ -64,6 +64,7 @@
 ;;; Externals
 
 (declare-function cogru--under-path-p "cogru.el")
+(declare-function cogru--ensure-connected "cogru.el")
 
 ;;
 ;;; Properties

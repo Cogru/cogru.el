@@ -41,6 +41,7 @@
 (declare-function cogru--ensure-connected "cogru.el")
 (declare-function cogru--ensure-entered "cogru.el")
 (declare-function cogru--ensure-under-path "cogru.el")
+(declare-function cogru--ensure-under-file "cogru.el")
 
 ;;
 ;;; Request
