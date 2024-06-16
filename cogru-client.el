@@ -172,9 +172,9 @@ If not found, create one instead."
 (defun cogru-client--render-all ()
   "Render clients."
   (cogru--ensure-connected
-   (ht-map (lambda (_username client)
-             (cogru-client--render client))
-           cogru--clients)))
+    (ht-map (lambda (_username client)
+              (cogru-client--render client))
+            cogru--clients)))
 
 (defun cogru-client-by-username (username)
   "Return the client by USERNAME."
