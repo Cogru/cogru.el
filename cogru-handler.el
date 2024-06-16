@@ -172,13 +172,9 @@
         (message "📢 %s: %s" username msg)
       (message msg))))
 
-(defun cogru--handle-room-users (data)
-  "Handle the `room::users' event from DATA."
-  (when-let* (((cogru--success-p data))
-              (clients (ht-get data "clients"))
-              (clients (cogru--json-read-from-string clients)))
-    (message "%s" clients)
-    ))
+(defun cogru--handle-room-info (data)
+  "Handle the `room::info' event from DATA."
+  (cogru--handle-file-info data))
 
 (defun cogru--handle-room-sync (data)
   "Handle the `room::sync' event from DATA."
@@ -235,7 +231,7 @@
   "Handle the `file::info' event from DATA."
   (let* ((clients  (ht-get data "clients"))
          (clients  (cogru--json-read-from-string clients)))
-    (setq cogru--clients nil)  ; clean up
+    (cogru-client-deactivate-all)
     (mapc (lambda (client)
             (let* ((username   (ht-get client "username"))
                    (path       (ht-get client "path"))
@@ -245,13 +241,10 @@
                    (region-beg (cogru-decode-point region-beg))
                    (region-end (ht-get client "region_end"))
                    (region-end (cogru-decode-point region-end)))
-              (ic username path point region-beg region-end)
-              (push (cogru-client-create :username username
-                                         :path path
-                                         :point point
-                                         :region-beg region-beg
-                                         :region-end region-end)
-                    cogru--clients)))
+              ;;(ic username path point region-beg region-end)
+              (cogru-client-get-or-create username path
+                                          point region-beg region-end
+                                          t)))
           clients)))
 
 (defun cogru--handle-file-say (data)
