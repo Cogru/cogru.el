@@ -266,7 +266,7 @@ First message we send to the server."
                  ("room::exit"      #'cogru--handle-room-exit)
                  ("room::kick"      #'cogru--handle-room-kick)
                  ("room::broadcast" #'cogru--handle-room-broadcast)
-                 ("room::users"     #'cogru--handle-room-users)
+                 ("room::info"      #'cogru--handle-room-info)
                  ("room::sync"      #'cogru--handle-room-sync)
                  ("file::update"    #'cogru--handle-file-update)
                  ("file::save"      #'cogru--handle-file-save)
