@@ -24,23 +24,40 @@
 
 ;;; Code:
 
+(require 'ht)
+(require 'posframe)
+
 (require 'cogru-util)
 
 (cl-defstruct (cogru-client
                (:constructor cogru-client-create))
   "The client implementation."
   username
-  entered
   admin
   path
   point
   region-beg region-end
-  frame-name-dialogue)
+  ;; Control
+  active
+  ;; Rendering
+  frame-name-dialogue  ; The posframe ID string.
+  ov-cursor
+  ov-region)
+
+(defcustom cogru-cursor-overlay-proprity 10
+  "Overlay priority for cursor."
+  :type 'integer
+  :group 'cogru)
+
+(defcustom cogru-cursor-overlay-region 0
+  "Overlay priority for region."
+  :type 'integer
+  :group 'cogru)
 
 (defvar cogru--client nil
   "Local client represent self.")
 
-(defvar cogru--clients nil
+(defvar cogru--clients (make-hash-table)
   "List of simulated clients.")
 
 ;;
@@ -57,8 +74,9 @@
         (func (intern (format "cogru-client-%s" name))))
     (unless (fboundp func)
       (error "[Cogru] Unknown property name: %s" name))
-    (dolist (client cogru--clients)
-      (push (funcall func client) props))
+    (ht-map (lambda (_username client)
+              (push (funcall func client) props))
+            cogru--clients)
     (when this
       (push (funcall func cogru--client) props))
     props))
@@ -66,6 +84,43 @@
 (defun cogru-client-usernames (&optional this)
   "Get a list of username including THIS."
   (cogru-client--get-properties "username" this))
+
+;;
+;;; Overlay
+
+(defun cogru-client--update-cursor-ov (client)
+  "Update cursor overlay for CLIENT.
+
+If not found, create one instead."
+  (let* ((username (cogru-client-username client))
+         (pt (cogru-client-point client))
+         (ov (or (cogru-client-ov-cursor client)
+                 (make-overlay pt (1+ pt)))))
+    (move-overlay ov pt (1+ pt))
+    (overlay-put ov 'face 'cursor)
+    (overlay-put ov 'priority cogru-cursor-overlay-proprity)
+    (overlay-put ov 'help-echo (format "cursor::%s" username))
+    (setf (cogru-client-ov-cursor client) ov)  ; set overlay
+    ov))
+
+(defun cogru-client--update-region-ov (client)
+  "Update region overlay for CLIENT.
+
+If not found, create one instead."
+  (let* ((username (cogru-client-username client))
+         (region-beg (cogru-client-region-beg client))
+         (region-end (cogru-client-region-end client))
+         (ov (cogru-client-ov-region client)))
+    (cond (region-beg
+           (unless ov
+             (setq ov (make-overlay region-beg region-end)))
+           (move-overlay ov region-beg region-end)
+           (overlay-put ov 'face 'highlight)
+           (overlay-put ov 'priority cogru-cursor-overlay-region)
+           (overlay-put ov 'help-echo (format "region::%s" username)))
+          (t (delete-overlay ov)))
+    (setf (cogru-client-ov-region client) ov)  ; set overlay
+    ov))
 
 ;;
 ;;; Core
@@ -84,22 +139,55 @@
       (setf (cogru-client-region-beg cogru--client) region-beg)
       (setf (cogru-client-region-end cogru--client) region-end))))
 
-(defun cogru-client--render-clients ()
+(defun cogru-client--render (client)
+  "Render single client."
+  (cond ((cogru-client-active client)
+         (cogru-client--update-region-ov client)
+         (cogru-client--update-cursor-ov client))
+        (t
+         (posframe-hide (cogru-client-frame-name-dialogue client))
+         (delete-overlay (cogru-client-ov-cursor client))
+         (delete-overlay (cogru-client-ov-region client)))))
+
+(defun cogru-client--render-all ()
   "Render clients."
   (cogru--ensure-connected
-    (when cogru--clients
-
-      )))
+    (ht-map (lambda (_username client)
+              (cogru-client--render client))
+            cogru--clients)))
 
 (defun cogru-client-by-username (username)
   "Return the client by USERNAME."
   (cond ((equal username (cogru-client-username cogru--client))
          cogru--client)
         (t
-         (cl-some (lambda (client)
-                    (when (equal username (cogru-client-username client))
-                      client))
-                  cogru--clients))))
+         (ht-get cogru--clients username))))
+
+(defun cogru-client-deactivate-all ()
+  "Deactivate all clients.
+
+This is used before getting the new clients' information."
+  (ht-map (lambda (_username client)
+            (setf (cogru-client-active client) nil))
+          cogru--clients))
+
+(defun cogru-client-get-or-create ( username path
+                                    point region-beg region-end
+                                    &optional active)
+  "Get the client or create one."
+  (when-let ((client (or (ht-get username cogru--clients)
+                         (cogru-client-create :username username
+                                              :path path
+                                              :point point
+                                              :region-beg region-beg
+                                              :region-end region-end))))
+    (setf (cogru-client-username   client) username)
+    (setf (cogru-client-path       client) path)
+    (setf (cogru-client-point      client) point)
+    (setf (cogru-client-region-beg client) region-beg)
+    (setf (cogru-client-region-end client) region-end)
+    (setf (cogru-client-active     client) active)
+    client))
 
 (provide 'cogru-client)
 ;;; cogru-client.el ends here

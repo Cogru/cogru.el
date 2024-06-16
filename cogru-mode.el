@@ -106,7 +106,7 @@
     (cogru-send `((method   . "file::info")
                   (username . ,(cogru-client-username cogru--client))
                   (file     . ,(buffer-file-name)))))
-  (cogru-client--render-clients)
+  (cogru-client--render-all)
   (run-hooks 'cogru-update-hook))
 
 (defun cogru--after-save ()

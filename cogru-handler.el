@@ -231,7 +231,7 @@
   "Handle the `file::info' event from DATA."
   (let* ((clients  (ht-get data "clients"))
          (clients  (cogru--json-read-from-string clients)))
-    (cogru-client-deactivate-all)
+    (cogru-client-deactivate-all)  ; Deactivate all before getting the activate one!
     (mapc (lambda (client)
             (let* ((username   (ht-get client "username"))
                    (path       (ht-get client "path"))
