@@ -154,10 +154,11 @@ If not found, create one instead."
 
 (defun cogru-client--render (client)
   "Render single client."
-  (let ((path (cogru-client-path client)))
+  (let* ((path (cogru-client-path client))
+         (path (cogru-expand-path path)))
     (cond ((and (cogru-client-active client)
                 path
-                (equal (buffer-file-name) (expand-file-name path)))
+                (equal (buffer-file-name) path))
            (cogru-client--update-dialogue-frame client)
            (cogru-client--update-region-ov client)
            (cogru-client--update-cursor-ov client))

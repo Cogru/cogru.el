@@ -84,7 +84,7 @@
     (when (yes-or-no-p (concat "Kick other user may make them lose thier work; "
                                "are you sure you want to proceed? "))
       (let* ((usernames (cogru-client-usernames))
-             (username (completing-read "Kick the user: " usernames)))
+             (username (completing-read "Kick: " usernames)))
         (cogru-send `((method   . "room::kick")
                       (admin    . ,(cogru-client-username cogru--client))
                       (username . ,username)))))))
@@ -119,6 +119,26 @@
   (cogru--ensure-under-path
     (cogru-send `((method . "file::sync")
                   (file   . ,(buffer-file-name))))))
+
+(defun cogru-find-user ()
+  "Move to user's location."
+  (interactive)
+  (cogru--ensure-connected
+    (let* ((usernames (cogru-client-usernames))
+           (username (completing-read "Find: " usernames))
+           (client (cogru-client-by-username username))
+           (path (cogru-client-path client))
+           (path (cogru-expand-path path))
+           (point (cogru-client-point client)))
+      (cond ((null client)
+             (cogru-print "[Cogru] Missing client: %s" username))
+            ((not (cogru-client-active client))
+             (cogru-print "[Cogru] Client currently not in any valid file: %s" username))
+            (t
+             (with-current-buffer (find-file path)
+               (goto-char point)
+               (cogru-recenter))
+             (cogru-print "[Cogru] Found `%s` at %s in %s" username point path))))))
 
 ;;
 ;;; Response (Room)
@@ -234,16 +254,18 @@
     (mapc (lambda (client)
             (let* ((username   (ht-get client "username"))
                    (path       (ht-get client "path"))
-                   (point      (ht-get client "point"))
-                   (point      (cogru-decode-point point))
-                   (region-beg (ht-get client "region_beg"))
-                   (region-beg (cogru-decode-point region-beg))
-                   (region-end (ht-get client "region_end"))
-                   (region-end (cogru-decode-point region-end)))
-              ;;(ic username path point region-beg region-end)
-              (cogru-client-get-or-create username path
-                                          point region-beg region-end
-                                          t)))
+                   (path       (cogru-expand-path path)))
+              (cogru--with-file-buffer path
+                (let* ((point      (ht-get client "point"))
+                       (point      (cogru-decode-point point))
+                       (region-beg (ht-get client "region_beg"))
+                       (region-beg (cogru-decode-point region-beg))
+                       (region-end (ht-get client "region_end"))
+                       (region-end (cogru-decode-point region-end)))
+                  ;;(ic username path point region-beg region-end)
+                  (cogru-client-get-or-create username path
+                                              point region-beg region-end
+                                              t)))))
           clients)
     (cogru-client--render-all)))
 

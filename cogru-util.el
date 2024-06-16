@@ -119,6 +119,30 @@
       (message "Wrote file %s" path))))
 
 ;;
+;;; Buffer
+
+(defmacro cogru--with-buffer (buffer-or-name &rest body)
+  "Run BODY only when BUFFER-OR-NAME is safe to visit."
+  (declare (indent 1))
+  `(when-let* ((buffer (ignore-errors (get-buffer ,buffer-or-name)))
+               ((buffer-live-p buffer)))
+     (with-current-buffer ,buffer ,@body)))
+
+(defmacro cogru--with-file-buffer (filename &rest body)
+  "Run BODY only when FILENAME is safe to visit."
+  (declare (indent 1))
+  `(when-let* ((buffer (ignore-errors (get-file-buffer ,filename)))
+               ((buffer-live-p buffer)))
+     (with-current-buffer buffer ,@body)))
+
+;;
+;;; Project
+
+(defun cogru-expand-path (path)
+  "Convert PATH to project path."
+  (ignore-errors (expand-file-name path cogru--path)))
+
+;;
 ;;; String
 
 (defun cogru-2str (obj)
@@ -235,6 +259,11 @@ Convert byte POS to text point."
                 (insert buf)
                 (how-many "\n" 0 (byte-to-position pos))))
           0)))))
+
+(defun cogru-recenter ()
+  "Recenter position to focus."
+  (let ((recenter-positions '(middle)))
+    (recenter-top-bottom)))
 
 ;;
 ;;; Overlay
