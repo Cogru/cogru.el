@@ -126,7 +126,7 @@
   (declare (indent 1))
   `(when-let* ((buffer (ignore-errors (get-buffer ,buffer-or-name)))
                ((buffer-live-p buffer)))
-     (with-current-buffer ,buffer ,@body)))
+     (with-current-buffer buffer ,@body)))
 
 (defmacro cogru--with-file-buffer (filename &rest body)
   "Run BODY only when FILENAME is safe to visit."
