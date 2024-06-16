@@ -33,6 +33,9 @@
 
 (defvar lsp-inhibit-lsp-hooks)
 
+(defvar cogru-host)
+(defvar cogru-port)
+(defvar cogru--process)
 (defvar cogru--path)
 
 (defvar cogru--client)
@@ -82,20 +85,20 @@
   "Run BODY only if client is established."
   (declare (indent 0))
   `(cogru--ensure-connected
-     (when cogru--client ,@body)))
+    (when cogru--client ,@body)))
 
 (defmacro cogru--ensure-under-path (&rest body)
   "Run BODY only if client is under session path."
   (declare (indent 0))
   `(cogru--ensure-connected
-     (cogru--ensure-entered
-       (when (cogru--under-path-p) ,@body))))
+    (cogru--ensure-entered
+     (when (cogru--under-path-p) ,@body))))
 
 (defmacro cogru--ensure-under-file (file &rest body)
   "Run BODY only if client is under session FILE."
   (declare (indent 1))
   `(cogru--ensure-under-path
-     (when (equal ,file (buffer-file-name)) ,@body)))
+    (when (equal ,file (buffer-file-name)) ,@body)))
 
 ;;
 ;;; I/O
@@ -113,7 +116,7 @@
   (let ((exists (ignore-errors (file-exists-p path))))
     (ignore-errors (make-directory (file-name-directory path) t))
     (cogru--ensure-coding-system
-      (msgu-silent (write-region contents nil path)))
+     (msgu-silent (write-region contents nil path)))
     ;; Print status
     (if exists (message "Overwrote file %s" path)
       (message "Wrote file %s" path))))
@@ -173,9 +176,9 @@ Replace current buffer contents with STR."
   (let ((tmp (get-buffer-create " *temp*")))
     (with-current-buffer tmp
       (cogru--ensure-coding-system
-        (insert str)))
+       (insert str)))
     (cogru--safe-edit
-      (replace-buffer-contents tmp))
+     (replace-buffer-contents tmp))
     (kill-buffer tmp)))
 
 (defun cogru-insert (&rest args)
