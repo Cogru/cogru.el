@@ -29,7 +29,7 @@
 (require 'cogru-client)
 (require 'cogru)
 
-(defcustom cogru-interval 0.4
+(defcustom cogru-interval 0.2
   "Interval in seconds between updating each frames."
   :type 'number
   :group 'cogru)
@@ -106,7 +106,6 @@
     (cogru-send `((method   . "room::info")
                   (username . ,(cogru-client-username cogru--client))
                   (file     . ,(buffer-file-name)))))
-  (cogru-client--render-all)
   (run-hooks 'cogru-update-hook))
 
 (defun cogru--after-save ()

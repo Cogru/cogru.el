@@ -124,6 +124,18 @@ If not found, create one instead."
     ov))
 
 ;;
+;;; Frame
+
+(defun cogru-client--update-dialogue-frame (client)
+  "Update dialogue."
+  (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
+              (frame (cdr frame-data))
+              ((frame-visible-p frame))  ; Only effect visible frame!
+              (buffer-name (car frame-data))
+              (point (cogru-client-point client)))
+    (cogru-tip-move buffer-name point)))
+
+;;
 ;;; Core
 
 (defun cogru-client-update-info ()
@@ -146,6 +158,7 @@ If not found, create one instead."
     (cond ((and (cogru-client-active client)
                 path
                 (equal (buffer-file-name) (expand-file-name path)))
+           (cogru-client--update-dialogue-frame client)
            (cogru-client--update-region-ov client)
            (cogru-client--update-cursor-ov client))
           (t

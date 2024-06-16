@@ -244,7 +244,8 @@
               (cogru-client-get-or-create username path
                                           point region-beg region-end
                                           t)))
-          clients)))
+          clients)
+    (cogru-client--render-all)))
 
 (defun cogru--handle-file-say (data)
   "Handle the `file::say' event from DATA."
