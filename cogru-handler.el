@@ -38,10 +38,8 @@
 (declare-function cogru-send "cogru.el")
 (declare-function cogru-print "cogru.el")
 
-(declare-function cogru--ensure-connected "cogru.el")
-(declare-function cogru--ensure-entered "cogru.el")
-(declare-function cogru--ensure-under-path "cogru.el")
-(declare-function cogru--ensure-under-file "cogru.el")
+(defvar cogru-mode)
+(declare-function cogru-mode "cogru-mode.el")
 
 ;;
 ;;; Request

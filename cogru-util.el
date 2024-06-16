@@ -33,6 +33,14 @@
 
 (defvar lsp-inhibit-lsp-hooks)
 
+(defvar cogru--path)
+
+(defvar cogru--client)
+(defvar cogru--clients)
+
+(defvar cogru-mode)
+(declare-function cogru-mode "cogru-mode.el")
+
 ;;
 ;;; Network
 
@@ -45,6 +53,49 @@
   (when-let* ((file (ht-get data "file"))
               (file (ignore-errors (expand-file-name file cogru--path))))
     file))
+
+(defun cogru-address ()
+  "Return the address name."
+  (format "http://%s:%s" cogru-host cogru-port))
+
+(defun cogru--connected-p ()
+  "Return non-nil when is connected."
+  (process-live-p cogru--process))
+
+(defun cogru--under-path-p (&optional path)
+  "Return non-nil if the PATH is under the workspace."
+  (when-let ((path (or path (buffer-file-name))))
+    (string-prefix-p cogru--path path t)))
+
+(defmacro cogru--ensure-connected (&rest body)
+  "Run BODY only if connection is established."
+  (declare (indent 0))
+  `(cond
+    ((cogru--connected-p) ,@body)
+    ((not cogru-mode))  ; Do nothing
+    (t
+     (cogru-mode -1)  ; This will clean up the variable `cogru--client' too!
+     (message (concat "[Cogru] No connection being established; "
+                      "try `M-x cogru-start` to connect to the server")))))
+
+(defmacro cogru--ensure-entered (&rest body)
+  "Run BODY only if client is established."
+  (declare (indent 0))
+  `(cogru--ensure-connected
+     (when cogru--client ,@body)))
+
+(defmacro cogru--ensure-under-path (&rest body)
+  "Run BODY only if client is under session path."
+  (declare (indent 0))
+  `(cogru--ensure-connected
+     (cogru--ensure-entered
+       (when (cogru--under-path-p) ,@body))))
+
+(defmacro cogru--ensure-under-file (file &rest body)
+  "Run BODY only if client is under session FILE."
+  (declare (indent 1))
+  `(cogru--ensure-under-path
+     (when (equal ,file (buffer-file-name)) ,@body)))
 
 ;;
 ;;; I/O
