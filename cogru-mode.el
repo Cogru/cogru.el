@@ -103,7 +103,7 @@
 (defun cogru--update ()
   "Update between interval."
   (cogru--ensure-under-path
-    (cogru-send `((method   . "file::info")
+    (cogru-send `((method   . "room::info")
                   (username . ,(cogru-client-username cogru--client))
                   (file     . ,(buffer-file-name)))))
   (cogru-client--render-all)

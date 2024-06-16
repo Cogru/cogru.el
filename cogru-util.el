@@ -185,5 +185,12 @@ Convert byte POS to text point."
                 (how-many "\n" 0 (byte-to-position pos))))
           0)))))
 
+;;
+;;; Overlay
+
+(defun cogru-delete-overlay (ov)
+  "Delete OV."
+  (when (overlayp ov) (delete-overlay ov)))
+
 (provide 'cogru-util)
 ;;; cogru-util.el ends here

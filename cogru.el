@@ -314,8 +314,8 @@ First message we send to the server."
          (setq cogru--process nil
                cogru--data nil
                cogru--path nil
-               cogru--client nil
-               cogru--clients nil)
+               cogru--client nil)
+         (ht-clear cogru--clients)
          (cogru-print "[Cogru] Safely disconnected from the server"))
         (t
          (cogru-print "[Cogru] No connection is established; this does nothing"))))

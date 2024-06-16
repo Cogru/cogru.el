@@ -57,7 +57,7 @@
 (defvar cogru--client nil
   "Local client represent self.")
 
-(defvar cogru--clients (make-hash-table)
+(defvar cogru--clients (make-hash-table :test 'equal)
   "List of simulated clients.")
 
 ;;
@@ -99,7 +99,7 @@ If not found, create one instead."
     (move-overlay ov pt (1+ pt))
     (overlay-put ov 'face 'cursor)
     (overlay-put ov 'priority cogru-cursor-overlay-proprity)
-    (overlay-put ov 'help-echo (format "cursor::%s" username))
+    (overlay-put ov 'help-echo (format "%s (cursor)" username))
     (setf (cogru-client-ov-cursor client) ov)  ; set overlay
     ov))
 
@@ -117,8 +117,8 @@ If not found, create one instead."
            (move-overlay ov region-beg region-end)
            (overlay-put ov 'face 'highlight)
            (overlay-put ov 'priority cogru-cursor-overlay-region)
-           (overlay-put ov 'help-echo (format "region::%s" username)))
-          (t (delete-overlay ov)))
+           (overlay-put ov 'help-echo (format "%s (region)" username)))
+          (t (cogru-delete-overlay ov)))
     (setf (cogru-client-ov-region client) ov)  ; set overlay
     ov))
 
@@ -141,13 +141,16 @@ If not found, create one instead."
 
 (defun cogru-client--render (client)
   "Render single client."
-  (cond ((cogru-client-active client)
-         (cogru-client--update-region-ov client)
-         (cogru-client--update-cursor-ov client))
-        (t
-         (posframe-hide (cogru-client-frame-name-dialogue client))
-         (delete-overlay (cogru-client-ov-cursor client))
-         (delete-overlay (cogru-client-ov-region client)))))
+  (let ((path (cogru-client-path client)))
+    (cond ((and (cogru-client-active client)
+                path
+                (equal (buffer-file-name) (expand-file-name path)))
+           (cogru-client--update-region-ov client)
+           (cogru-client--update-cursor-ov client))
+          (t
+           (posframe-hide (cogru-client-frame-name-dialogue client))
+           (cogru-delete-overlay (cogru-client-ov-cursor client))
+           (cogru-delete-overlay (cogru-client-ov-region client))))))
 
 (defun cogru-client--render-all ()
   "Render clients."
@@ -175,7 +178,9 @@ This is used before getting the new clients' information."
                                     point region-beg region-end
                                     &optional active)
   "Get the client or create one."
-  (when-let ((client (or (ht-get username cogru--clients)
+  (when-let (((not (equal username
+                          (cogru-client-username cogru--client))))  ; skip self
+             (client (or (ht-get cogru--clients username)
                          (cogru-client-create :username username
                                               :path path
                                               :point point
@@ -187,6 +192,7 @@ This is used before getting the new clients' information."
     (setf (cogru-client-region-beg client) region-beg)
     (setf (cogru-client-region-end client) region-end)
     (setf (cogru-client-active     client) active)
+    (ht-set cogru--clients username client)
     client))
 
 (provide 'cogru-client)

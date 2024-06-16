@@ -149,7 +149,6 @@ forever delay."
   (let* ((username (cogru-client-username client))
          (buffer-name (format "say::%s" username))
          (point (cogru-client-point client))
-         (point (cogru-re-point point))
          (frame (cogru-tip-show buffer-name msg point)))
     (setf (cogru-client-frame-name-dialogue client) (cons buffer-name frame))))
 
