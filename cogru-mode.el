@@ -34,13 +34,21 @@
   :type 'number
   :group 'cogru)
 
+(defcustom cogru-post-command-delay 0.2
+  "Number of seconds before executing post command."
+  :type 'number
+  :group 'cogru)
+
 (defcustom cogru-update-hook nil
   "Hooks run after each update."
   :type 'hook
   :group 'cogru)
 
-(defconst cogru--update-timer-name (intern "*cogru-timer*")
+(defconst cogru--update-timer-name (intern "*cogru-timer:update*")
   "Name of the update timer.")
+
+(defconst cogru--post-command-timer-name (intern "*cogru-timer:post*")
+  "Name of the post command timer.")
 
 (defvar cogru--cleared-client-p nil
   "Set to non-nil when info is clear on the server.")
@@ -160,8 +168,9 @@
 ;;
 ;;; Post
 
-(defun cogru--post-command ()
-  "Post command hook."
+(defun cogru--post-command-delay ()
+  "Delay post command."
+  (ic "run")
   (cogru-client-update-info)  ; Update status before send.
   (cogru--ensure-entered
     (let* ((path       (cogru-client-path cogru--client))
@@ -181,7 +190,13 @@
       ;; Flag to clean up the client info once before stop
       ;; sending further more data.
       (unless path
-        (setq cogru--cleared-client-p t))))
+        (setq cogru--cleared-client-p t)))))
+
+(defun cogru--post-command ()
+  "Post command hook."
+  (named-timer-run cogru--post-command-timer-name
+    cogru-post-command-delay nil
+    #'cogru--post-command-delay)
   (cogru--ensure-under-path
     (cogru-tip--post-command)))
 

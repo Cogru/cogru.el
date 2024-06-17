@@ -232,21 +232,23 @@
 
 (defun cogru--handle-file-info (data)
   "Handle the `file::info' event from DATA."
-  (let* ((clients  (ht-get data "clients"))
-         (clients  (cogru--json-read-from-string clients)))
+  (let* ((clients (ht-get data "clients"))
+         (clients (cogru--json-read-from-string clients)))
     (cogru-client-deactivate-all)  ; Deactivate all before getting the activate one!
     (mapc (lambda (client)
             (let* ((username   (ht-get client "username"))
                    (path       (ht-get client "path"))
                    (path       (cogru-expand-path path)))
+              ;; We need to enter the file to decode the correct position!
               (cogru--with-file-buffer path
+                ;; These information are decoded and ready to use!
                 (let* ((point      (cogru--data-point client "point"))
                        (region-beg (cogru--data-point client "region_beg"))
                        (region-end (cogru--data-point client "region_end")))
                   ;;(ic username path point region-beg region-end)
                   (cogru-client-get-or-create username path
                                               point region-beg region-end
-                                              t)))))
+                                              t)))))  ; Set activate!
           clients)
     (cogru-client--render-all)))
 

@@ -54,7 +54,7 @@
 (defun cogru--data-file (data)
   "Return file from DATA."
   (when-let* ((file (ht-get data "file"))
-              (file (ignore-errors (expand-file-name file cogru--path))))
+              (file (cogru-expand-path file)))
     file))
 
 (defun cogru--data-point (data key)
