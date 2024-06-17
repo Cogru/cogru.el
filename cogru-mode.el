@@ -171,7 +171,6 @@
 
 (defun cogru--send-client-info ()
   "Send the client information."
-  (ic "?")
   (cogru-client-update-info)  ; Update status before send.
   (cogru--ensure-entered
     (let* ((path       (cogru-client-path cogru--client))

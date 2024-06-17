@@ -118,7 +118,7 @@ If not found, create one instead."
            (unless ov
              (setq ov (make-overlay region-beg region-end)))
            (move-overlay ov region-beg region-end)
-           (overlay-put ov 'face 'highlight)
+           (overlay-put ov 'face 'region)
            (overlay-put ov 'priority cogru-cursor-overlay-region)
            (overlay-put ov 'help-echo (format "%s (region)" username)))
           (t (cogru-delete-overlay ov)))

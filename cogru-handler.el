@@ -17,7 +17,7 @@
 
 ;;; Commentary:
 ;;
-;; Request handler
+;; Request handler.
 ;;
 
 ;;; Code:
