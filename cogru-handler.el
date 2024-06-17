@@ -125,20 +125,9 @@
   (interactive)
   (cogru--ensure-connected
     (let* ((usernames (cogru-client-usernames))
-           (username (completing-read "Find: " usernames))
-           (client (cogru-client-by-username username))
-           (path (cogru-client-path client))
-           (path (cogru-expand-path path))
-           (point (cogru-client-point client)))
-      (cond ((null client)
-             (cogru-print "[Cogru] Missing client: %s" username))
-            ((not (cogru-client-active client))
-             (cogru-print "[Cogru] Client currently not in any valid file: %s" username))
-            (t
-             (with-current-buffer (find-file path)
-               (goto-char point)
-               (cogru-recenter))
-             (cogru-print "[Cogru] Found `%s` at %s in %s" username point path))))))
+           (username (completing-read "Find: " usernames)))
+      (cogru-send `((method . "room::find_user")
+                    (username . ,username))))))
 
 ;;
 ;;; Response (Room)
@@ -174,22 +163,16 @@
 
 (defun cogru--handle-room-kick (data)
   "Handle the `room::kick' event from DATA."
-  (let* ((username (ht-get data "username"))
-         (admin    (ht-get data "admin"))
-         (msg      (ht-get data "message"))
-         (success  (cogru--success-p data)))
-    (if success
-        (message "🦶 %s has been kicked out by %s" username admin)
-      (message msg))))
+  (let ((username (ht-get data "username"))
+        (admin    (ht-get data "admin")))
+    (cogru--handle-request data
+      (message "🦶 %s has been kicked out by %s" username admin))))
 
 (defun cogru--handle-room-broadcast (data)
   "Handle the `room::broadcast' event from DATA."
-  (let ((username (ht-get data "username"))
-        (msg      (ht-get data "message"))
-        (success (cogru--success-p data)))
-    (if success
-        (message "📢 %s: %s" username msg)
-      (message msg))))
+  (let ((username (ht-get data "username")))
+    (cogru--handle-request data
+      (message "📢 %s: %s" username msg))))
 
 (defun cogru--handle-room-info (data)
   "Handle the `room::info' event from DATA."
@@ -197,13 +180,22 @@
 
 (defun cogru--handle-room-sync (data)
   "Handle the `room::sync' event from DATA."
-  (let* ((path     (ht-get data "path"))
-         (contents (ht-get data "contents"))
-         (msg      (ht-get data "message"))
-         (success  (cogru--success-p data)))
-    (cond (success
-           (cogru-write-file path contents))
-          (t (message msg)))))
+  (let ((path     (ht-get data "path"))
+        (contents (ht-get data "contents")))
+    (cogru--handle-request data
+      (cogru-write-file path contents))))
+
+(defun cogru--handle-room-find-user (data)
+  "Handle the `room::find_user' event from DATA."
+  (let ((username (ht-get data "username"))
+        (file     (cogru--data-file data))
+        (point    (cogru--data-point data "point")))
+    (cogru--handle-request data
+      (when (y-or-n-p
+             (format "User `%s` is located at %s in %s; move to it? "
+                     username point file))
+        (with-current-buffer (find-file file)
+          (goto-char point))))))
 
 ;;
 ;;; Response (File)
@@ -211,12 +203,10 @@
 (defun cogru--handle-file-update (data)
   "Handle the `file::update' event from DATA."
   (let* ((success       (cogru--success-p data))
-         (file          (cogru--get-file data))
+         (file          (cogru--data-file data))
          (add-or-delete (ht-get data "add_or_delete"))
-         (beg           (ht-get data "beg"))
-         (beg           (cogru-decode-point beg))
-         (end           (ht-get data "end"))
-         (end           (cogru-decode-point end))
+         (beg           (cogru--data-point data "beg"))
+         (end           (cogru--data-point data "end"))
          (contents      (ht-get data "contents")))
     (cond (success
            (cogru--ensure-under-file file
@@ -228,23 +218,17 @@
 
 (defun cogru--handle-file-save (data)
   "Handle the `file::save' event from DATA."
-  (let* ((success (cogru--success-p data))
-         (file     (cogru--get-file data))
-         (contents (ht-get data "contents"))
-         (msg      (ht-get data "message")))
-    (cond (success
-           (cogru-write-file file contents))
-          (t (message msg)))))
+  (let ((file     (cogru--data-file data))
+        (contents (ht-get data "contents")))
+    (cogru--handle-request data
+      (cogru-write-file file contents))))
 
 (defun cogru--handle-file-sync (data)
   "Handle the `file::sync' event from DATA."
-  (let* ((file     (cogru--get-file data))
-         (contents (ht-get data "contents"))
-         (msg      (ht-get data "message"))
-         (success  (cogru--success-p data)))
-    (cond (success
-           (cogru-write-file file contents))
-          (t (message msg)))))
+  (let ((file     (cogru--data-file data))
+        (contents (ht-get data "contents")))
+    (cogru--handle-request data
+      (cogru-write-file file contents))))
 
 (defun cogru--handle-file-info (data)
   "Handle the `file::info' event from DATA."
@@ -256,12 +240,9 @@
                    (path       (ht-get client "path"))
                    (path       (cogru-expand-path path)))
               (cogru--with-file-buffer path
-                (let* ((point      (ht-get client "point"))
-                       (point      (cogru-decode-point point))
-                       (region-beg (ht-get client "region_beg"))
-                       (region-beg (cogru-decode-point region-beg))
-                       (region-end (ht-get client "region_end"))
-                       (region-end (cogru-decode-point region-end)))
+                (let* ((point      (cogru--data-point client "point"))
+                       (region-beg (cogru--data-point client "region_beg"))
+                       (region-end (cogru--data-point client "region_end")))
                   ;;(ic username path point region-beg region-end)
                   (cogru-client-get-or-create username path
                                               point region-beg region-end
@@ -271,14 +252,11 @@
 
 (defun cogru--handle-file-say (data)
   "Handle the `file::say' event from DATA."
-  (let* ((username (ht-get data "username"))
-         (msg      (ht-get data "message"))
-         (success  (cogru--success-p data)))
-    (cond (success
-           (if-let ((client (cogru-client-by-username username)))
-               (cogru-tip-client-say client msg)
-             (message "Try to display `file::say' message but client not found")))
-          (t (message msg)))))
+  (let ((username (ht-get data "username")))
+    (cogru--handle-request data
+      (if-let ((client (cogru-client-by-username username)))
+          (cogru-tip-client-say client msg)
+        (message "Try to display `file::say' message but client not found")))))
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here

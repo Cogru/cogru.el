@@ -223,6 +223,7 @@ First message we send to the server."
                  ("room::broadcast" #'cogru--handle-room-broadcast)
                  ("room::info"      #'cogru--handle-room-info)
                  ("room::sync"      #'cogru--handle-room-sync)
+                 ("room::find_user" #'cogru--handle-room-find-user)
                  ("file::update"    #'cogru--handle-file-update)
                  ("file::save"      #'cogru--handle-file-save)
                  ("file::sync"      #'cogru--handle-file-sync)
