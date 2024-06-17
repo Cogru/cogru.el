@@ -34,7 +34,7 @@
   :type 'number
   :group 'cogru)
 
-(defcustom cogru-post-command-delay 0.2
+(defcustom cogru-post-command-delay 0.1
   "Number of seconds before executing post command."
   :type 'number
   :group 'cogru)
@@ -111,6 +111,7 @@
 (defun cogru--update ()
   "Update between interval."
   (cogru--ensure-under-path
+    (cogru--schedule-send-client-info)
     (cogru-send `((method   . "room::info")
                   (username . ,(cogru-client-username cogru--client))
                   (file     . ,(buffer-file-name)))))
@@ -168,9 +169,9 @@
 ;;
 ;;; Post
 
-(defun cogru--post-command-delay ()
-  "Delay post command."
-  (ic "run")
+(defun cogru--send-client-info ()
+  "Send the client information."
+  (ic "?")
   (cogru-client-update-info)  ; Update status before send.
   (cogru--ensure-entered
     (let* ((path       (cogru-client-path cogru--client))
@@ -192,11 +193,15 @@
       (unless path
         (setq cogru--cleared-client-p t)))))
 
-(defun cogru--post-command ()
-  "Post command hook."
+(defun cogru--schedule-send-client-info ()
+  "Schedule to send client information."
   (named-timer-run cogru--post-command-timer-name
     cogru-post-command-delay nil
-    #'cogru--post-command-delay)
+    #'cogru--send-client-info))
+
+(defun cogru--post-command ()
+  "Post command hook."
+  (cogru--schedule-send-client-info)
   (cogru--ensure-under-path
     (cogru-tip--post-command)))
 
