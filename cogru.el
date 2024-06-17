@@ -195,18 +195,15 @@ First message we send to the server."
 
 (defun cogru--handle-init (data)
   "Handle the `init' event from DATA."
-  (let ((msg (ht-get data "message"))
-        (success (cogru--success-p data)))
-    (cond
-     (success
-      (cogru--log-info msg)
-      (sleep-for 0.5)
-      (when (y-or-n-p "Do you want to enter the room? ")
-        (cogru-enter)))
-     (t
-      (cogru-print "Unable to initialize the workspace")
-      (sleep-for 0.5)
-      (cogru-stop)))))
+  (cogru--handle-request data
+      (progn
+        (cogru-print "Unable to initialize the workspace")
+        (sleep-for 0.5)
+        (cogru-stop))
+    (cogru--log-info msg)
+    (sleep-for 0.5)
+    (when (y-or-n-p "Do you want to enter the room? ")
+      (cogru-enter))))
 
 (defun cogru--handle (data)
   "Handle the incoming request DATA."

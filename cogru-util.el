@@ -233,13 +233,14 @@ Replace current buffer contents with STR."
     (goto-char (point-min))
     (cogru--json-read-buffer)))
 
-(defmacro cogru--handle-request (data &rest body)
+(defmacro cogru--handle-request (data failure &rest success)
   "Handle DATA request; run BODY only when return success status."
-  (declare (indent 1))
+  (declare (indent 2))
   `(let ((success (cogru--success-p ,data))
          (msg     (ht-get ,data "message")))
-     (cond (success ,@body)
-           (t (message msg)))))
+     (cond (success ,@success)
+           (t (or ,failure
+                  (message msg))))))
 
 (defun cogru-encode-point (pos)
   "Encode POS to server's buffer space."

@@ -165,13 +165,13 @@
   "Handle the `room::kick' event from DATA."
   (let ((username (ht-get data "username"))
         (admin    (ht-get data "admin")))
-    (cogru--handle-request data
+    (cogru--handle-request data nil
       (message "🦶 %s has been kicked out by %s" username admin))))
 
 (defun cogru--handle-room-broadcast (data)
   "Handle the `room::broadcast' event from DATA."
   (let ((username (ht-get data "username")))
-    (cogru--handle-request data
+    (cogru--handle-request data nil
       (message "📢 %s: %s" username msg))))
 
 (defun cogru--handle-room-info (data)
@@ -182,7 +182,7 @@
   "Handle the `room::sync' event from DATA."
   (let ((path     (ht-get data "path"))
         (contents (ht-get data "contents")))
-    (cogru--handle-request data
+    (cogru--handle-request data nil
       (cogru-write-file path contents))))
 
 (defun cogru--handle-room-find-user (data)
@@ -190,7 +190,7 @@
   (let ((username (ht-get data "username"))
         (file     (cogru--data-file data))
         (point    (cogru--data-point data "point")))
-    (cogru--handle-request data
+    (cogru--handle-request data nil
       (when (y-or-n-p
              (format "User `%s` is located at %s in %s; move to it? "
                      username point file))
@@ -220,14 +220,14 @@
   "Handle the `file::save' event from DATA."
   (let ((file     (cogru--data-file data))
         (contents (ht-get data "contents")))
-    (cogru--handle-request data
+    (cogru--handle-request data nil
       (cogru-write-file file contents))))
 
 (defun cogru--handle-file-sync (data)
   "Handle the `file::sync' event from DATA."
   (let ((file     (cogru--data-file data))
         (contents (ht-get data "contents")))
-    (cogru--handle-request data
+    (cogru--handle-request data nil
       (cogru-write-file file contents))))
 
 (defun cogru--handle-file-info (data)
@@ -255,7 +255,7 @@
 (defun cogru--handle-file-say (data)
   "Handle the `file::say' event from DATA."
   (let ((username (ht-get data "username")))
-    (cogru--handle-request data
+    (cogru--handle-request data nil
       (if-let ((client (cogru-client-by-username username)))
           (cogru-tip-client-say client msg)
         (message "Try to display `file::say' message but client not found")))))
