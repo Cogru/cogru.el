@@ -11,7 +11,7 @@
 To start connecting to the server:
 
 ```
-M-x cogru-mode
+M-x cogru-start
 ```
 
 ## 📇 Commands
