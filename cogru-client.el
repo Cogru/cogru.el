@@ -41,8 +41,8 @@
   active
   ;; Rendering
   frame-name-dialogue  ; The posframe ID string.
-  ov-cursor
-  ov-region)
+  ov-cursor color-cursor
+  ov-region color-region)
 
 (defcustom cogru-cursor-overlay-proprity 10
   "Overlay priority for cursor."
@@ -98,9 +98,10 @@ If not found, create one instead."
   (let* ((username (cogru-client-username client))
          (pt (cogru-client-point client))
          (ov (or (cogru-client-ov-cursor client)
-                 (make-overlay pt (1+ pt)))))
+                 (make-overlay pt (1+ pt))))
+         (color (cogru-client-color-cursor client)))
     (move-overlay ov pt (1+ pt))
-    (overlay-put ov 'face 'cursor)
+    (overlay-put ov 'face `((t :background ,color)))
     (overlay-put ov 'priority cogru-cursor-overlay-proprity)
     (overlay-put ov 'help-echo (format "%s (cursor)" username))
     (setf (cogru-client-ov-cursor client) ov)  ; set overlay
@@ -113,12 +114,13 @@ If not found, create one instead."
   (let* ((username (cogru-client-username client))
          (region-beg (cogru-client-region-beg client))
          (region-end (cogru-client-region-end client))
+         (color (cogru-client-color-region client))
          (ov (cogru-client-ov-region client)))
     (cond (region-beg
            (unless ov
              (setq ov (make-overlay region-beg region-end)))
            (move-overlay ov region-beg region-end)
-           (overlay-put ov 'face 'region)
+           (overlay-put ov 'face `((t :background ,color)))
            (overlay-put ov 'priority cogru-cursor-overlay-region)
            (overlay-put ov 'help-echo (format "%s (region)" username)))
           (t (cogru-delete-overlay ov)))
@@ -152,7 +154,9 @@ If not found, create one instead."
       (setf (cogru-client-path cogru--client) path)
       (setf (cogru-client-point cogru--client) point)
       (setf (cogru-client-region-beg cogru--client) region-beg)
-      (setf (cogru-client-region-end cogru--client) region-end))))
+      (setf (cogru-client-region-end cogru--client) region-end)
+      (setf (cogru-client-color-cursor cogru--client) cogru-cursor-color)
+      (setf (cogru-client-color-region cogru--client) cogru-region-color))))
 
 (defun cogru-client--render (client)
   "Render single client."
@@ -193,6 +197,7 @@ This is used before getting the new clients' information."
 
 (defun cogru-client-get-or-create ( username path
                                     point region-beg region-end
+                                    color-cursor color-region
                                     &optional active)
   "Get the client or create one."
   (when-let (((not (equal username
@@ -203,12 +208,14 @@ This is used before getting the new clients' information."
                                               :point point
                                               :region-beg region-beg
                                               :region-end region-end))))
-    (setf (cogru-client-username   client) username)
-    (setf (cogru-client-path       client) path)
-    (setf (cogru-client-point      client) point)
-    (setf (cogru-client-region-beg client) region-beg)
-    (setf (cogru-client-region-end client) region-end)
-    (setf (cogru-client-active     client) active)
+    (setf (cogru-client-username     client) username)
+    (setf (cogru-client-path         client) path)
+    (setf (cogru-client-point        client) point)
+    (setf (cogru-client-region-beg   client) region-beg)
+    (setf (cogru-client-region-end   client) region-end)
+    (setf (cogru-client-color-cursor client) color-cursor)
+    (setf (cogru-client-color-region client) color-region)
+    (setf (cogru-client-active       client) active)
     (ht-set cogru--clients username client)
     client))
 

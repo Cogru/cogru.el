@@ -236,9 +236,11 @@
          (clients (cogru--json-read-from-string clients)))
     (cogru-client-deactivate-all)  ; Deactivate all before getting the activate one!
     (mapc (lambda (client)
-            (let* ((username   (ht-get client "username"))
-                   (path       (ht-get client "path"))
-                   (path       (cogru-expand-path path)))
+            (let* ((username     (ht-get client "username"))
+                   (path         (ht-get client "path"))
+                   (path         (cogru-expand-path path))
+                   (color-cursor (ht-get client "color_cursor"))
+                   (color-region (ht-get client "color_region")))
               ;; We need to enter the file to decode the correct position!
               (cogru--with-file-buffer path
                 ;; These information are decoded and ready to use!
@@ -248,6 +250,7 @@
                   ;;(ic username path point region-beg region-end)
                   (cogru-client-get-or-create username path
                                               point region-beg region-end
+                                              color-cursor color-region
                                               t)))))  ; Set activate!
           clients)
     (cogru-client--render-all)))

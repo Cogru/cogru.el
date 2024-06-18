@@ -135,7 +135,8 @@ forever delay."
 
 (defun cogru-tip--post-command ()
   "Post command hook for tip."
-  (cogru-client--update-dialogue-frame cogru--client))
+  (cogru--ensure-under-path
+    (cogru-client--update-dialogue-frame cogru--client)))
 
 ;;
 ;;; Actions

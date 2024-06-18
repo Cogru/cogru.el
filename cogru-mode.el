@@ -44,6 +44,16 @@
   :type 'hook
   :group 'cogru)
 
+(defcustom cogru-cursor-color (face-background 'cursor)
+  "Custom cursor color."
+  :type 'string
+  :group 'cogru)
+
+(defcustom cogru-region-color (face-background 'region)
+  "Custom region color."
+  :type 'string
+  :group 'cogru)
+
 (defconst cogru--update-timer-name (intern "*cogru-timer:update*")
   "Name of the update timer.")
 
@@ -52,6 +62,12 @@
 
 (defvar cogru--cleared-client-p nil
   "Set to non-nil when info is clear on the server.")
+
+(defvar cogru--old-cursor-color (face-background 'cursor)
+  "Old cursor color.")
+
+(defvar cogru--old-region-color (face-background 'region)
+  "Old region color.")
 
 ;;
 ;;; Externals
@@ -104,6 +120,26 @@
   (remove-hook 'post-command-hook #'cogru--post-command)
   (remove-hook 'after-save-hook #'cogru--after-save)
   (cogru-stop))
+
+;;
+;;; Cursor & Region
+
+(defun cogru--cursor-set ()
+  "Set cursor status."
+  (set-cursor-color cogru-cursor-color)
+  (set-face-background 'region cogru-region-color))
+
+(defun cogru--cursor-revert ()
+  "Revert cursor status."
+  (set-cursor-color cogru--old-cursor-color)
+  (set-face-background 'region cogru--old-region-color))
+
+(defun cogru--cursor-post-command ()
+  "Post command for cursor."
+  (cogru--ensure-connected
+    (if (and cogru--client(cogru--under-path-p))
+        (cogru--cursor-set)
+      (cogru--cursor-revert))))
 
 ;;
 ;;; Core
@@ -173,19 +209,23 @@
   "Send the client information."
   (cogru-client-update-info)  ; Update status before send.
   (cogru--ensure-entered
-    (let* ((path       (cogru-client-path cogru--client))
-           (point      (cogru-client-point cogru--client))
-           (point      (cogru-encode-point point))
-           (region-beg (cogru-client-region-beg cogru--client))
-           (region-beg (cogru-encode-point      region-beg))
-           (region-end (cogru-client-region-end cogru--client))
-           (region-end (cogru-encode-point      region-end)))
+    (let* ((path         (cogru-client-path cogru--client))
+           (point        (cogru-client-point cogru--client))
+           (point        (cogru-encode-point point))
+           (region-beg   (cogru-client-region-beg cogru--client))
+           (region-beg   (cogru-encode-point region-beg))
+           (region-end   (cogru-client-region-end cogru--client))
+           (region-end   (cogru-encode-point region-end))
+           (color-cursor (cogru-client-color-cursor cogru--client))
+           (color-region (cogru-client-color-region cogru--client)))
       (when (or path (not cogru--cleared-client-p))
-        (cogru-send `((method     . "room::update_client")
-                      (path       . ,path)
-                      (point      . ,point)
-                      (region_beg . ,region-beg)
-                      (region_end . ,region-end)))
+        (cogru-send `((method       . "room::update_client")
+                      (path         . ,path)
+                      (point        . ,point)
+                      (region_beg   . ,region-beg)
+                      (region_end   . ,region-end)
+                      (color_cursor . ,color-cursor)
+                      (color_region . ,color-region)))
         (setq cogru--cleared-client-p nil))
       ;; Flag to clean up the client info once before stop
       ;; sending further more data.
@@ -201,8 +241,8 @@
 (defun cogru--post-command ()
   "Post command hook."
   (cogru--schedule-send-client-info)
-  (cogru--ensure-under-path
-    (cogru-tip--post-command)))
+  (cogru--cursor-post-command)
+  (cogru-tip--post-command))
 
 (provide 'cogru-mode)
 ;;; cogru-mode.el ends here
