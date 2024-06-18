@@ -202,6 +202,7 @@ First message we send to the server."
         (cogru-stop))
     (cogru--log-info msg)
     (sleep-for 0.5)
+    (unless cogru-mode (cogru-mode 1))  ; Enable `cogru-mode' if needed!
     (when (y-or-n-p "Do you want to enter the room? ")
       (cogru-enter))))
 
