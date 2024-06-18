@@ -92,6 +92,35 @@
   (cogru-client--get-properties "username" this))
 
 ;;
+;;; Tip
+
+(defun cogru-client--update-dialogue-frame (client)
+  "Update dialogue."
+  (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
+              (frame (cdr frame-data))
+              ((frame-visible-p frame))  ; Only effect visible frame!
+              (buffer-name (car frame-data))
+              (point (cogru-client-point client)))
+    (cogru-tip-move buffer-name point)))
+
+;;
+;;; Faces
+
+(defun cogru-client--cursor-face (username color)
+  "Make custom cursor face by USERNAME and COLOR."
+  (let* ((name (intern (format "cogru-%s-cursor" username)))
+         (copied (copy-face 'cursor name)))
+    (set-face-background copied color)
+    copied))
+
+(defun cogru-client--region-face (username color)
+  "Make custom region face by USERNAME and COLOR."
+  (let* ((name (intern (format "cogru-%s-region" username)))
+         (copied (copy-face 'region name)))
+    (set-face-background copied color)
+    copied))
+
+;;
 ;;; Overlay
 
 (defun cogru-client--update-cursor-ov (client)
@@ -102,9 +131,10 @@ If not found, create one instead."
          (pt (cogru-client-point client))
          (ov (or (cogru-client-ov-cursor client)
                  (make-overlay pt (1+ pt))))
-         (color (cogru-client-color-cursor client)))
+         (color (cogru-client-color-cursor client))
+         (face (cogru-client--cursor-face username color)))
     (move-overlay ov pt (1+ pt))
-    (overlay-put ov 'face `((t :background ,color)))
+    (overlay-put ov 'face face)
     (overlay-put ov 'priority cogru-cursor-overlay-proprity)
     (overlay-put ov 'help-echo (format "%s (cursor)" username))
     (setf (cogru-client-ov-cursor client) ov)  ; set overlay
@@ -118,29 +148,18 @@ If not found, create one instead."
          (region-beg (cogru-client-region-beg client))
          (region-end (cogru-client-region-end client))
          (color (cogru-client-color-region client))
-         (ov (cogru-client-ov-region client)))
+         (ov (cogru-client-ov-region client))
+         (face (cogru-client--region-face username color)))
     (cond (region-beg
            (unless ov
              (setq ov (make-overlay region-beg region-end)))
            (move-overlay ov region-beg region-end)
-           (overlay-put ov 'face `((t :background ,color)))
+           (overlay-put ov 'face face)
            (overlay-put ov 'priority cogru-cursor-overlay-region)
            (overlay-put ov 'help-echo (format "%s (region)" username)))
           (t (cogru-delete-overlay ov)))
     (setf (cogru-client-ov-region client) ov)  ; set overlay
     ov))
-
-;;
-;;; Frame
-
-(defun cogru-client--update-dialogue-frame (client)
-  "Update dialogue."
-  (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
-              (frame (cdr frame-data))
-              ((frame-visible-p frame))  ; Only effect visible frame!
-              (buffer-name (car frame-data))
-              (point (cogru-client-point client)))
-    (cogru-tip-move buffer-name point)))
 
 ;;
 ;;; Core
@@ -221,6 +240,17 @@ This is used before getting the new clients' information."
     (setf (cogru-client-active       client) active)
     (ht-set cogru--clients username client)
     client))
+
+(defun cogru-client--clean (client)
+  "Clean up single CLIENT."
+  (setf (cogru-client-active client) nil)
+  (cogru-client--render client))
+
+(defun cogru-client-clean-all ()
+  "Clean up all clients."
+  (ht-map (lambda (_username client)
+            (cogru-client--clean client))
+          cogru--clients))
 
 (provide 'cogru-client)
 ;;; cogru-client.el ends here
