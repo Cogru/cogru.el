@@ -207,7 +207,7 @@
          (add-or-delete (ht-get data "add_or_delete"))
          (beg           (cogru--data-point data "beg"))
          (end           (cogru--data-point data "end"))
-         (contents      (ht-get data "contents")))
+         (contents      (cogru--data-contents data)))
     (cond (success
            (cogru--ensure-under-file file
              (cogru--safe-edit
