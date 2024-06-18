@@ -11,8 +11,25 @@
 To start connecting to the server:
 
 ```
-M-x cogru-start
+M-x cogru-mode
 ```
+
+## 📇 Commands
+
+These are the commands you can use for collaborative editing.
+
+| Command           | Description                     |
+|-------------------|---------------------------------|
+| `cogru-start`     | Connect to the server.          |
+| `cogru-stop`      | Disconnect from the server.     |
+| `cogru-enter`     | Enter the room.                 |
+| `cogru-ext`       | Exit the room.                  |
+| `cogru-kick`      | Kick an user. (admin-only)      |
+| `cogru-broadcast` | Send a message across the room. |
+| `cogru-say`       | Say something in the file.      |
+| `cogru-sync-room` | Sync the entire files.          |
+| `cogru-sync-file` | Synce a single file.            |
+| `cogru-find-user` | Move to an user's location.     |
 
 ## 🛠️ Contribute
 
