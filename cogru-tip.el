@@ -75,6 +75,9 @@
 ;;
 ;;; Externals
 
+(defvar cogru-mode)
+(declare-function cogru-mode "cogru-mode.el")
+
 (declare-function cogru-send "cogru.el")
 (declare-function cogru-print "cogru.el")
 

@@ -63,6 +63,9 @@
 ;;
 ;;; Externals
 
+(defvar cogru-cursor-color)
+(defvar cogru-region-color)
+
 (defvar cogru-mode)
 (declare-function cogru-mode "cogru-mode.el")
 
