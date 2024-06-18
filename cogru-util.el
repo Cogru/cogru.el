@@ -63,6 +63,12 @@
               (point (cogru-decode-point point)))
     point))
 
+(defun cogru--data-contents (data)
+  "Return contents from DATA."
+  (when-let* ((contents (ht-get data "contents"))
+              (contents (cogru-decode-str contents)))
+    contents))
+
 (defun cogru-address ()
   "Return the address name."
   (format "http://%s:%s" cogru-host cogru-port))
@@ -158,10 +164,16 @@
   "Convert OBJ to string."
   (format "%s" obj))
 
-(defun cogru-str-le (str)
-  "Handle STR line endings."
+(defun cogru-encode-str (str)
+  "Encode STR."
   (cond ((eq 'dos (show-eol-get-current-system))
          (s-replace "\n" "\r\n" str))
+        (t str)))
+
+(defun cogru-decode-str (str)
+  "Decode STR."
+  (cond ((eq 'dos (show-eol-get-current-system))
+         (s-replace "\r\n" "\n" str))
         (t str)))
 
 (defmacro cogru--safe-edit (&rest body)

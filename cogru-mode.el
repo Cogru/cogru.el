@@ -119,6 +119,8 @@
   (remove-hook 'after-change-functions #'cogru--after-change)
   (remove-hook 'post-command-hook #'cogru--post-command)
   (remove-hook 'after-save-hook #'cogru--after-save)
+  (cogru-client-clean-all)
+  (cogru--cursor-revert)
   (cogru-stop))
 
 ;;
@@ -156,9 +158,8 @@
 (defun cogru--after-save ()
   "After save hook."
   (cogru--ensure-under-path
-    (when-let ((path (cogru-client-path cogru--client)))
-      (cogru-send `((method . "file::save")
-                    (path   . ,path))))))
+    (cogru-send `((method . "file::save")
+                  (file   . ,(buffer-file-name))))))
 
 ;;
 ;;; Addition / Deletion
@@ -182,7 +183,7 @@
     (unless (= beg end)
       (list (if swap-p "delete" "add") beg end
             (if swap-p ""
-              (cogru-str-le (buffer-substring-no-properties beg end)))))))
+              (buffer-substring-no-properties beg end))))))
 
 (defun cogru--after-change (beg end len)
   "Do stuff after buffer is changed with BEG, END and LEN."
@@ -193,8 +194,9 @@
                 (end           (if (string= add-or-delete "delete")
                                    cogru--befor-end  ; Use before for deletion
                                  (cogru-encode-point (nth 2 data))))
-                (contents      (nth 3 data))
+                (contents      (cogru-encode-str (nth 3 data)))
                 (path          (cogru-client-path cogru--client)))
+      (cogru--send-client-info)
       (cogru-send `((method        . "file::update")
                     (path          . ,path)            ; What file to update?
                     (add_or_delete . ,add-or-delete)   ; `add' or `delete'
@@ -240,6 +242,9 @@
 
 (defun cogru--post-command ()
   "Post command hook."
+  ;; XXX: Update status for tip? Or just move to tip post command?
+  (progn
+    (cogru-client-update-info))
   (cogru--schedule-send-client-info)
   (cogru--cursor-post-command)
   (cogru-tip--post-command))
