@@ -150,6 +150,12 @@
                ((buffer-live-p buffer)))
      (with-current-buffer buffer ,@body)))
 
+(defun cogru--revert-file (filename)
+  "Revert FILENAME if the buffer is valid."
+  (cogru--with-file-buffer filename
+    (ignore-errors
+      (revert-buffer :ignore-auto :noconfirm :preserve-modes))))
+
 ;;
 ;;; Project
 
@@ -294,6 +300,11 @@ Convert byte POS to text point."
   "Recenter position to focus."
   (let ((recenter-positions '(middle)))
     (recenter-top-bottom)))
+
+(defun cogru--point-visible-p (point)
+  "Return non-nil if POINT is visibile on screen."
+  (and (< point (window-end nil t))
+       (<= (window-start) point)))
 
 ;;
 ;;; Overlay
