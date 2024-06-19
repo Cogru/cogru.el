@@ -139,7 +139,7 @@
 (defun cogru--cursor-post-command ()
   "Post command for cursor."
   (cogru--ensure-connected
-    (if (and cogru--client(cogru--under-path-p))
+    (if (and cogru--client (cogru--under-path-p))
         (cogru--cursor-set)
       (cogru--cursor-revert))))
 
