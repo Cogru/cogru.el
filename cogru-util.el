@@ -113,7 +113,7 @@
      (when (equal ,file (buffer-file-name)) ,@body)))
 
 ;;
-;;; I/O
+;;; File
 
 (defmacro cogru--ensure-coding-system (&rest body)
   "Run BODY with correct coding system."
@@ -123,7 +123,7 @@
          (last-coding-system-used 'utf-8))
      ,@body))
 
-(defun cogru-write-file (path contents)
+(defun cogru--write-file (path contents)
   "Write CONTENTS to PATH."
   (let ((exists (ignore-errors (file-exists-p path))))
     (ignore-errors (make-directory (file-name-directory path) t))
@@ -132,6 +132,11 @@
     ;; Print status
     (if exists (message "Overwrote file %s" path)
       (message "Wrote file %s" path))))
+
+(defun cogru--sync-file (filename contents)
+  "Sync FILENAME with CONTENTS."
+  (cogru--write-file file contents)
+  (cogru--revert-file file))
 
 ;;
 ;;; Buffer

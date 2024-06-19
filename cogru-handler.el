@@ -180,11 +180,7 @@
 
 (defun cogru--handle-room-sync (data)
   "Handle the `room::sync' event from DATA."
-  (let ((file     (cogru--data-file data))
-        (contents (ht-get data "contents")))
-    (cogru--handle-request data nil
-      (cogru-write-file file contents)
-      (cogru--revert-file file))))
+  (cogru--handle-file-sync data))
 
 (defun cogru--handle-room-find-user (data)
   "Handle the `room::find_user' event from DATA."
@@ -222,16 +218,14 @@
   (let ((file     (cogru--data-file data))
         (contents (ht-get data "contents")))
     (cogru--handle-request data nil
-      (cogru-write-file file contents)
-      (cogru--revert-file file))))
+      (cogru--sync-file file contents))))
 
 (defun cogru--handle-file-sync (data)
   "Handle the `file::sync' event from DATA."
   (let ((file     (cogru--data-file data))
         (contents (ht-get data "contents")))
     (cogru--handle-request data nil
-      (cogru-write-file file contents)
-      (cogru--revert-file file))))
+      (cogru--sync-file file contents))))
 
 (defun cogru--handle-file-info (data)
   "Handle the `file::info' event from DATA."
