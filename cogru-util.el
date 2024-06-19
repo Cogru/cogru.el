@@ -135,8 +135,8 @@
 
 (defun cogru--sync-file (filename contents)
   "Sync FILENAME with CONTENTS."
-  (cogru--write-file file contents)
-  (cogru--revert-file file))
+  (cogru--write-file filename contents)
+  (cogru--revert-file filename))
 
 ;;
 ;;; Buffer
