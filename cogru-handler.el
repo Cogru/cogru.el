@@ -221,14 +221,16 @@
   (let ((file     (cogru--data-file data))
         (contents (ht-get data "contents")))
     (cogru--handle-request data nil
-      (cogru-write-file file contents))))
+      (cogru-write-file file contents)
+      (cogru--revert-file file))))
 
 (defun cogru--handle-file-sync (data)
   "Handle the `file::sync' event from DATA."
   (let ((file     (cogru--data-file data))
         (contents (ht-get data "contents")))
     (cogru--handle-request data nil
-      (cogru-write-file file contents))))
+      (cogru-write-file file contents)
+      (cogru--revert-file file))))
 
 (defun cogru--handle-file-info (data)
   "Handle the `file::info' event from DATA."
@@ -260,7 +262,9 @@
   (let ((username (ht-get data "username")))
     (cogru--handle-request data nil
       (if-let ((client (cogru-client-by-username username)))
-          (cogru-tip-client-say client msg)
+          (progn
+            (cogru-tip-client-say client msg)
+            (message "🗣️ %s: %s" username msg))
         (message "Try to display `file::say' message but client not found")))))
 
 (provide 'cogru-handler)
