@@ -97,11 +97,15 @@
 (defun cogru-client--update-dialogue-frame (client)
   "Update dialogue."
   (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
-              (frame (cdr frame-data))
-              ((frame-visible-p frame))  ; Only effect visible frame!
               (buffer-name (car frame-data))
+              (frame (cdr frame-data))
               (point (cogru-client-point client)))
-    (cogru-tip-move buffer-name point)))
+    (cond ((and (frame-parameter frame 'cogru-active)  ; only active frame
+                (cogru--point-visible-p point))        ; only when point is visible
+           (make-frame-visible frame)
+           (cogru-tip-move buffer-name point))
+          (t
+           (make-frame-invisible frame)))))
 
 ;;
 ;;; Faces
@@ -191,7 +195,9 @@ If not found, create one instead."
            (cogru-client--update-region-ov client)
            (cogru-client--update-cursor-ov client))
           (t
-           (posframe-hide (cogru-client-frame-name-dialogue client))
+           (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
+                       (frame (cdr frame-data)))
+             (make-frame-invisible frame))
            (cogru-delete-overlay (cogru-client-ov-cursor client))
            (cogru-delete-overlay (cogru-client-ov-region client))))))
 
@@ -248,6 +254,7 @@ This is used before getting the new clients' information."
 
 (defun cogru-client-clean-all ()
   "Clean up all clients."
+  (cogru-client--render cogru--client)
   (ht-map (lambda (_username client)
             (cogru-client--clean client))
           cogru--clients))
