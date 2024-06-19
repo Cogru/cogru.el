@@ -89,19 +89,19 @@
                       (admin    . ,(cogru-client-username cogru--client))
                       (username . ,username)))))))
 
-(defun cogru-broadcast ()
-  "Broadcast across the room."
+(defun cogru-broadcast (&optional msg)
+  "Broadcast MSG across the room."
   (interactive)
   (cogru--ensure-connected
-    (let ((msg (read-string "Broadcast: ")))
+    (let ((msg (or msg (read-string "Broadcast: "))))
       (cogru-send `((method  . "room::broadcast")
                     (message . ,msg))))))
 
-(defun cogru-say ()
-  "Say something."
+(defun cogru-say (&optional msg)
+  "Say MSG across the file."
   (interactive)
   (cogru--ensure-under-path
-    (let ((msg (read-string "Say: ")))
+    (let ((msg (or msg (read-string "Say: "))))
       (cogru-send `((method  . "file::say")
                     (message . ,msg)
                     (file    . ,(buffer-file-name)))))))
@@ -180,10 +180,11 @@
 
 (defun cogru--handle-room-sync (data)
   "Handle the `room::sync' event from DATA."
-  (let ((path     (ht-get data "path"))
+  (let ((file     (cogru--data-file data))
         (contents (ht-get data "contents")))
     (cogru--handle-request data nil
-      (cogru-write-file path contents))))
+      (cogru-write-file file contents)
+      (cogru--revert-file file))))
 
 (defun cogru--handle-room-find-user (data)
   "Handle the `room::find_user' event from DATA."
