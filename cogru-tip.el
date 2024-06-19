@@ -122,10 +122,13 @@ forever delay."
                (append cogru-tip-frame-parameters
                        `((default-minibuffer-frame . ,(selected-frame))
                          (minibuffer               . ,(minibuffer-window)))))))
+    (set-frame-parameter frame 'cogru-active t)
     ;; Start hide timer.
     (when hide
       (named-timer-run timer-name cogru-tip-delay nil
-                       (lambda () (posframe-hide buffer-name))))
+                       (lambda ()
+                         (set-frame-parameter frame 'cogru-active nil)
+                         (make-frame-invisible frame))))
     frame))
 
 (defun cogru-tip-move (buffer-name point)
