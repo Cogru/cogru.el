@@ -168,22 +168,6 @@ If not found, create one instead."
 ;;
 ;;; Core
 
-(defun cogru-client-update-info ()
-  "Keep the server's information up to date regarding this client."
-  (when cogru--client
-    (let* ((use-region (use-region-p))
-           (path (and (cogru--under-path-p)
-                      (buffer-file-name)))
-           (point (point))
-           (region-beg (and use-region (region-beginning)))
-           (region-end (and use-region (region-end))))
-      (setf (cogru-client-path cogru--client) path)
-      (setf (cogru-client-point cogru--client) point)
-      (setf (cogru-client-region-beg cogru--client) region-beg)
-      (setf (cogru-client-region-end cogru--client) region-end)
-      (setf (cogru-client-color-cursor cogru--client) cogru-cursor-color)
-      (setf (cogru-client-color-region cogru--client) cogru-region-color))))
-
 (defun cogru-client--render (client)
   "Render single client."
   (when (cogru-client-p client)
