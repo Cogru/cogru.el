@@ -6,12 +6,15 @@
 
 (require 'project)
 
-(let* ((files (project-files (project-current)))
-       (files (cl-remove-if (lambda (filename)
-                              (or (not (string-suffix-p ".el" filename))
-                                  (string-suffix-p "load-lib.el" filename)))
-                            files)))
-  (dolist (filename files)
-    (load-file filename)))
+(defun jcs-project-reload ()
+  "Reload current el project."
+  (interactive)
+  (when-let* ((project (project-current))
+              (files (project-files project))
+              (files (cl-remove-if-not (lambda (filename)
+                                         (string-suffix-p ".el" filename))
+                                       files)))
+    (dolist (filename files)
+      (load-file filename))))
 
 ;;; load-lib.el ends here
