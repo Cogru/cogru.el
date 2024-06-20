@@ -45,6 +45,17 @@
 (declare-function cogru-mode "cogru-mode.el")
 
 ;;
+;;; Progress
+
+(defmacro coru-with-progress (msg-beg body msg-end)
+  "Progress BODY wrapper with prefix (MSG-START) and suffix (MSG-END) messages."
+  (declare (indent 0) (debug t))
+  `(progn
+     (cogru-print ,msg-beg)
+     ,body
+     (cogru-print ,msg-end)))
+
+;;
 ;;; Network
 
 (defun cogru--success-p (data)
@@ -115,9 +126,13 @@
 ;;
 ;;; File
 
+;; XXX: This is a hack to make sure the data will have the
+;; same line endings with the server.
 (defmacro cogru--ensure-coding-system (&rest body)
   "Run BODY with correct coding system."
   (declare (indent 0))
+  ;; These variables are the default value on Windows, and these are
+  ;; the only way I found to write files with correct CRLF line endings.
   `(let ((buffer-file-coding-system 'undecided-unix)
          (coding-system-for-write)
          (last-coding-system-used 'utf-8))
@@ -135,8 +150,11 @@
 
 (defun cogru--sync-file (filename contents)
   "Sync FILENAME with CONTENTS."
-  (cogru--write-file filename contents)
-  (cogru--revert-file filename))
+  (coru-with-progress
+    (format "[Cogru] Syncing file %s..." filename)
+    (msgu-silent (cogru--write-file filename contents)
+                 (cogru--revert-file filename))
+    (format "[Cogru] Syncing file %s... done!" filename)))
 
 ;;
 ;;; Buffer
