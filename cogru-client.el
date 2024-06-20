@@ -186,20 +186,21 @@ If not found, create one instead."
 
 (defun cogru-client--render (client)
   "Render single client."
-  (let* ((path (cogru-client-path client))
-         (path (cogru-expand-path path)))
-    (cond ((and (cogru-client-active client)
-                path
-                (equal (buffer-file-name) path))
-           (cogru-client--update-dialogue-frame client)
-           (cogru-client--update-region-ov client)
-           (cogru-client--update-cursor-ov client))
-          (t
-           (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
-                       (frame (cdr frame-data)))
-             (make-frame-invisible frame))
-           (cogru-delete-overlay (cogru-client-ov-cursor client))
-           (cogru-delete-overlay (cogru-client-ov-region client))))))
+  (when (cogru-client-p client)
+    (let* ((path (cogru-client-path client))
+           (path (cogru-expand-path path)))
+      (cond ((and (cogru-client-active client)
+                  path
+                  (equal (buffer-file-name) path))
+             (cogru-client--update-dialogue-frame client)
+             (cogru-client--update-region-ov client)
+             (cogru-client--update-cursor-ov client))
+            (t
+             (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
+                         (frame (cdr frame-data)))
+               (make-frame-invisible frame))
+             (cogru-delete-overlay (cogru-client-ov-cursor client))
+             (cogru-delete-overlay (cogru-client-ov-region client)))))))
 
 (defun cogru-client--render-all ()
   "Render clients."
