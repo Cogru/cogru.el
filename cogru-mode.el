@@ -126,26 +126,6 @@
   (cogru-stop))
 
 ;;
-;;; Cursor & Region
-
-(defun cogru--cursor-set ()
-  "Set cursor status."
-  (set-cursor-color cogru-cursor-color)
-  (set-face-background 'region cogru-region-color))
-
-(defun cogru--cursor-revert ()
-  "Revert cursor status."
-  (set-cursor-color cogru--old-cursor-color)
-  (set-face-background 'region cogru--old-region-color))
-
-(defun cogru--cursor-post-command ()
-  "Post command for cursor."
-  (cogru--ensure-connected
-    (if (and cogru--client (cogru--under-path-p))
-        (cogru--cursor-set)
-      (cogru--cursor-revert))))
-
-;;
 ;;; Core
 
 (defun cogru--window-buffer-change ()
@@ -255,6 +235,26 @@
   (cogru--schedule-send-client-info)
   (cogru--cursor-post-command)
   (cogru-tip--post-command))
+
+;;
+;;; Cursor & Region
+
+(defun cogru--cursor-set ()
+  "Set cursor status."
+  (set-cursor-color cogru-cursor-color)
+  (set-face-background 'region cogru-region-color))
+
+(defun cogru--cursor-revert ()
+  "Revert cursor status."
+  (set-cursor-color cogru--old-cursor-color)
+  (set-face-background 'region cogru--old-region-color))
+
+(defun cogru--cursor-post-command ()
+  "Post command for cursor."
+  (cogru--ensure-connected
+    (if (and cogru--client (cogru--under-path-p))
+        (cogru--cursor-set)
+      (cogru--cursor-revert))))
 
 (provide 'cogru-mode)
 ;;; cogru-mode.el ends here
