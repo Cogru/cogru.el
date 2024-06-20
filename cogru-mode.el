@@ -240,8 +240,8 @@
 (defun cogru--schedule-send-client-info ()
   "Schedule to send client information."
   (named-timer-run cogru--post-command-timer-name
-                   cogru-post-command-delay nil
-                   #'cogru--send-client-info))
+    cogru-post-command-delay nil
+    #'cogru--send-client-info))
 
 (defun cogru--post-command ()
   "Post command hook."
