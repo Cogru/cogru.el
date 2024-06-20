@@ -194,7 +194,7 @@
 ;;
 ;;; Post
 
-(defun cogru-client--update-info ()
+(defun cogru--client-update-info ()
   "Keep the server's information up to date regarding this client."
   (when cogru--client
     (let* ((use-region (use-region-p))
@@ -212,7 +212,7 @@
 
 (defun cogru--send-client-info ()
   "Send the client information."
-  (cogru-client--update-info)  ; Update status before send.
+  (cogru--client-update-info)  ; Update status before send.
   (cogru--ensure-entered
     (let* ((path         (cogru-client-path cogru--client))
            (point        (cogru-client-point cogru--client))
@@ -247,7 +247,7 @@
   "Post command hook."
   ;; XXX: Update status for tip? Or just move to tip post command?
   (progn
-    (cogru-client--update-info))
+    (cogru--client-update-info))
   (cogru--schedule-send-client-info)
   (cogru--cursor-post-command)
   (cogru-tip--post-command))
