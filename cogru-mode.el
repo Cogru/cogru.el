@@ -107,7 +107,7 @@
   (cogru--ensure-connected
     (named-timer-run cogru--update-timer-name nil cogru-interval
                      #'cogru--update)
-    (add-hook 'window-buffer-change-functions #'cogru--buffer-change 95)
+    (add-hook 'window-buffer-change-functions #'cogru--window-buffer-change 95)
     (add-hook 'before-change-functions #'cogru--before-change 95)
     (add-hook 'after-change-functions #'cogru--after-change 95)
     (add-hook 'post-command-hook #'cogru--post-command 95)
@@ -116,7 +116,7 @@
 (defun cogru-mode--disable ()
   "Disable `cogru-mode'."
   (named-timer-cancel cogru--update-timer-name)
-  (remove-hook 'window-buffer-change-functions #'cogru--buffer-change)
+  (remove-hook 'window-buffer-change-functions #'cogru--window-buffer-change)
   (remove-hook 'before-change-functions #'cogru--before-change)
   (remove-hook 'after-change-functions #'cogru--after-change)
   (remove-hook 'post-command-hook #'cogru--post-command)
@@ -148,7 +148,7 @@
 ;;
 ;;; Core
 
-(defun cogru--buffer-change ()
+(defun cogru--window-buffer-change ()
   "On switch buffer."
   (cogru--ensure-under-path
     (cogru-sync-file)))
