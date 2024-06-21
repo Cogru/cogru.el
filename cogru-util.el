@@ -44,6 +44,8 @@
 (defvar cogru-mode)
 (declare-function cogru-mode "cogru-mode.el")
 
+(defvar cogru-inhibit-change-hooks)
+
 ;;
 ;;; Progress
 
@@ -209,8 +211,7 @@
   "Run BODY with no modification's side effect."
   (declare (indent 0))
   `(let ((lsp-inhibit-lsp-hooks t)
-         (after-change-functions)
-         (before-change-functions)
+         (cogru-inhibit-change-hooks)
          ;;(buffer-undo-list)
          (jit-lock-functions))
      (elenv-with-no-redisplay

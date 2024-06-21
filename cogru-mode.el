@@ -151,6 +151,9 @@
 ;;
 ;;; Addition / Deletion
 
+(defvar cogru-inhibit-change-hooks nil
+  "Set to non-nil to disable all change requests.")
+
 (defvar cogru--befor-end nil
   "Record the delete end position.")
 
@@ -175,7 +178,8 @@
 (defun cogru--after-change (beg end len)
   "Do stuff after buffer is changed with BEG, END and LEN."
   (cogru--ensure-under-path
-    (when-let* ((data          (cogru--change-data beg end len))
+    (when-let* (((not cogru-inhibit-change-hooks))
+                (data          (cogru--change-data beg end len))
                 (add-or-delete (nth 0 data))
                 (beg           (cogru-encode-point (nth 1 data)))
                 (end           (if (string= add-or-delete "delete")
