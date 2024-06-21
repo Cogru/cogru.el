@@ -128,7 +128,7 @@
 ;;
 ;;; Core
 
-(defun cogru--window-buffer-change ()
+(defun cogru--window-buffer-change (&rest _)
   "On switch buffer."
   (cogru--ensure-under-path
     (cogru-sync-file)))
