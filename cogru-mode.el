@@ -108,7 +108,7 @@
     (named-timer-run cogru--update-timer-name nil cogru-interval
                      #'cogru--update)
     (add-function :after after-focus-change-function #'cogru--after-focus)
-    ;;(add-hook 'window-selection-change-functions #'cogru--window-x-change 95)
+    (add-hook 'window-selection-change-functions #'cogru--window-x-change 95)
     (add-hook 'window-buffer-change-functions #'cogru--window-x-change 95)
     (add-hook 'before-change-functions #'cogru--before-change 95)
     (add-hook 'after-change-functions #'cogru--after-change 95)
@@ -119,7 +119,7 @@
   "Disable `cogru-mode'."
   (named-timer-cancel cogru--update-timer-name)
   (remove-function after-focus-change-function #'cogru--after-focus)
-  ;;(remove-hook 'window-selection-change-functions #'cogru--window-x-change)
+  (remove-hook 'window-selection-change-functions #'cogru--window-x-change)
   (remove-hook 'window-buffer-change-functions #'cogru--window-x-change)
   (remove-hook 'before-change-functions #'cogru--before-change)
   (remove-hook 'after-change-functions #'cogru--after-change)
@@ -132,6 +132,9 @@
 ;;
 ;;; Core
 
+(defvar cogru-inhibit-sync-hooks nil
+  "Set to non-nil to disable all sync requests.")
+
 (defun cogru--after-focus (&rest _)
   "Function runs after focusing the frame."
   (cond ((frame-focus-state)
@@ -141,8 +144,8 @@
 (defun cogru--window-x-change (&rest _)
   "On switch buffer."
   (cogru--ensure-under-path
-    ;;(cogru-sync-file)
-    ))
+    (unless cogru-inhibit-sync-hooks
+      (cogru-sync-file))))
 
 (defun cogru--update ()
   "Update between interval."
