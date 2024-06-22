@@ -132,7 +132,7 @@
 
 If not found, create one instead."
   (let* ((username (cogru-client-username client))
-         (pt (cogru-client-point client))
+         (pt (or (cogru-client-point client) (point-max)))
          (ov (or (cogru-client-ov-cursor client)
                  (make-overlay pt (1+ pt))))
          (color (cogru-client-color-cursor client))
@@ -149,8 +149,8 @@ If not found, create one instead."
 
 If not found, create one instead."
   (let* ((username (cogru-client-username client))
-         (region-beg (cogru-client-region-beg client))
-         (region-end (cogru-client-region-end client))
+         (region-beg (or (cogru-client-region-beg client) (point-max)))
+         (region-end (or (cogru-client-region-end client) (point-max)))
          (color (cogru-client-color-region client))
          (ov (cogru-client-ov-region client))
          (face (cogru-client--region-face username color)))
