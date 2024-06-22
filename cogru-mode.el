@@ -107,7 +107,9 @@
   (cogru--ensure-connected
     (named-timer-run cogru--update-timer-name nil cogru-interval
                      #'cogru--update)
-    (add-hook 'window-buffer-change-functions #'cogru--window-buffer-change 95)
+    (add-function :after after-focus-change-function #'cogru--after-focus)
+    ;;(add-hook 'window-selection-change-functions #'cogru--window-x-change 95)
+    (add-hook 'window-buffer-change-functions #'cogru--window-x-change 95)
     (add-hook 'before-change-functions #'cogru--before-change 95)
     (add-hook 'after-change-functions #'cogru--after-change 95)
     (add-hook 'post-command-hook #'cogru--post-command 95)
@@ -116,7 +118,9 @@
 (defun cogru-mode--disable ()
   "Disable `cogru-mode'."
   (named-timer-cancel cogru--update-timer-name)
-  (remove-hook 'window-buffer-change-functions #'cogru--window-buffer-change)
+  (remove-function after-focus-change-function #'cogru--after-focus)
+  ;;(remove-hook 'window-selection-change-functions #'cogru--window-x-change)
+  (remove-hook 'window-buffer-change-functions #'cogru--window-x-change)
   (remove-hook 'before-change-functions #'cogru--before-change)
   (remove-hook 'after-change-functions #'cogru--after-change)
   (remove-hook 'post-command-hook #'cogru--post-command)
@@ -128,10 +132,17 @@
 ;;
 ;;; Core
 
-(defun cogru--window-buffer-change (&rest _)
+(defun cogru--after-focus (&rest _)
+  "Function runs after focusing the frame."
+  (cond ((frame-focus-state)
+         (cogru--window-x-change))
+        (t )))  ; Do nothing
+
+(defun cogru--window-x-change (&rest _)
   "On switch buffer."
   (cogru--ensure-under-path
-    (cogru-sync-file)))
+    ;;(cogru-sync-file)
+    ))
 
 (defun cogru--update ()
   "Update between interval."
