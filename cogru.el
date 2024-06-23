@@ -6,7 +6,7 @@
 ;; Maintainer: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; URL: https://github.com/Cogru/cogru.el
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "26.1") (elenv "0.1.0") (msgu "0.1.0") (s "1.12.0") (ht "2.0") (log4e "0.4.1") (posframe "1.4.3") (named-timer "0.1") (show-eol "0.0.5"))
+;; Package-Requires: ((emacs "27.1") (elenv "0.1.0") (msgu "0.1.0") (s "1.12.0") (ht "2.0") (log4e "0.4.1") (posframe "1.4.3") (named-timer "0.1") (show-eol "0.0.5"))
 ;; Keywords: convenience cogru
 
 ;; This file is not part of GNU Emacs.
