@@ -69,6 +69,9 @@
 (defvar cogru--old-region-color (face-background 'region)
   "Old region color.")
 
+(defvar cogru--current-buffer nil
+  "Record the current buffer preventing over syncing.")
+
 ;;
 ;;; Externals
 
@@ -112,6 +115,7 @@
     (add-hook 'window-buffer-change-functions #'cogru--window-x-change 95)
     (add-hook 'before-change-functions #'cogru--before-change 95)
     (add-hook 'after-change-functions #'cogru--after-change 95)
+    (add-hook 'pre-command-hook #'cogru--pre-command 95)
     (add-hook 'post-command-hook #'cogru--post-command 95)
     (add-hook 'after-save-hook #'cogru--after-save 95)))
 
@@ -123,6 +127,7 @@
   (remove-hook 'window-buffer-change-functions #'cogru--window-x-change)
   (remove-hook 'before-change-functions #'cogru--before-change)
   (remove-hook 'after-change-functions #'cogru--after-change)
+  (remove-hook 'pre-command-hook #'cogru--pre-command)
   (remove-hook 'post-command-hook #'cogru--post-command)
   (remove-hook 'after-save-hook #'cogru--after-save)
   (cogru-client-clean-all)
@@ -131,9 +136,6 @@
 
 ;;
 ;;; Core
-
-(defvar cogru-inhibit-sync-hooks nil
-  "Set to non-nil to disable all sync requests.")
 
 (defun cogru--after-focus (&rest _)
   "Function runs after focusing the frame."
@@ -144,7 +146,7 @@
 (defun cogru--window-x-change (&rest _)
   "On switch buffer."
   (cogru--ensure-under-path
-    (unless cogru-inhibit-sync-hooks
+    (unless (equal cogru--current-buffer (current-buffer))
       (cogru-sync-file))))
 
 (defun cogru--update ()
@@ -260,6 +262,10 @@
   (named-timer-run cogru--post-command-timer-name
     cogru-post-command-delay nil
     #'cogru--send-client-info))
+
+(defun cogru--pre-command ()
+  "Pre command hook."
+  (setq cogru--current-buffer (current-buffer)))
 
 (defun cogru--post-command ()
   "Post command hook."
