@@ -41,6 +41,8 @@
 (defvar cogru-mode)
 (declare-function cogru-mode "cogru-mode.el")
 
+(defvar cogru-inhibit-change-hooks)
+
 ;;
 ;;; Request
 
