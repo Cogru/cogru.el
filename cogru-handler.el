@@ -116,10 +116,17 @@
                   (path   . ,cogru--path)))))
 
 (defun cogru-sync-file ()
-  "Sync single file."
+  "Sync the file."
   (interactive)
   (cogru--ensure-under-path
     (cogru-send `((method . "file::sync")
+                  (file   . ,(buffer-file-name))))))
+
+(defun cogru-sync-buffer ()
+  "Sync the buffer."
+  (interactive)
+  (cogru--ensure-under-path
+    (cogru-send `((method . "file::sync_buffer")
                   (file   . ,(buffer-file-name))))))
 
 (defun cogru-find-user ()
@@ -228,6 +235,13 @@
         (contents (ht-get data "contents")))
     (cogru--handle-request data nil
       (cogru--sync-file file contents))))
+
+(defun cogru--handle-file-sync-buffer (data)
+  "Handle the `file::sync_buffer' event from DATA."
+  (let ((file     (cogru--data-file data))
+        (contents (ht-get data "contents")))
+    (cogru--handle-request data nil
+      (cogru--sync-buffer file contents))))
 
 (defun cogru--handle-file-info (data)
   "Handle the `file::info' event from DATA."

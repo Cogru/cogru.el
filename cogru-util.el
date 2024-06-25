@@ -158,6 +158,20 @@
                  (cogru--revert-file filename))
     (format "[Cogru] Syncing file %s... done!" filename)))
 
+(defun cogru--sync-buffer (filename contents)
+  "Sync FILENAME's buffer with CONTENTS."
+  (coru-with-progress
+    (format "[Cogru] Syncing buffer %s..." filename)
+    (cogru--with-file-buffer filename
+      (let ((pt (point))
+            (wstart (window-start)))
+        (cogru--safe-edit
+          (erase-buffer)
+          (insert contents))
+        (set-window-start nil wstart)
+        (goto-char pt)))
+    (format "[Cogru] Syncing buffer %s... done!" filename)))
+
 ;;
 ;;; Buffer
 
@@ -214,8 +228,7 @@
          (cogru-inhibit-change-hooks)
          ;;(buffer-undo-list)
          (jit-lock-functions))
-     (elenv-with-no-redisplay
-       ,@body)))
+     (elenv-with-no-redisplay ,@body)))
 
 (defun cogru--replace-buffer-contents (str)
   "Wrap function `replace-buffer-contents'

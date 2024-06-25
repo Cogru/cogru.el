@@ -148,7 +148,7 @@
   "On switch buffer."
   (cogru--ensure-under-path
     (unless (equal cogru--current-buffer (current-buffer))
-      (cogru-sync-file))))
+      (cogru-sync-buffer))))
 
 (defun cogru--update ()
   "Update between interval."
