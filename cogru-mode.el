@@ -140,7 +140,8 @@
 (defun cogru--after-focus (&rest _)
   "Function runs after focusing the frame."
   (cond ((frame-focus-state)
-         (cogru--window-x-change))
+         (let ((cogru--current-buffer))
+           (cogru--window-x-change)))
         (t )))  ; Do nothing
 
 (defun cogru--window-x-change (&rest _)
