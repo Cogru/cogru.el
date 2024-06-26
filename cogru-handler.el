@@ -126,7 +126,14 @@
   "Sync the buffer."
   (interactive)
   (cogru--ensure-under-path
-    (cogru-send `((method . "file::sync_buffer")
+    (cogru-send `((method . "buffer::sync")
+                  (file   . ,(buffer-file-name))))))
+
+(defun cogru-save-buffer ()
+  "Save buffer request."
+  (interactive)
+  (cogru--ensure-under-path
+    (cogru-send `((method . "buffer::save")
                   (file   . ,(buffer-file-name))))))
 
 (defun cogru-find-user ()
@@ -206,42 +213,12 @@
 ;;
 ;;; Response (File)
 
-(defun cogru--handle-file-update (data)
-  "Handle the `file::update' event from DATA."
-  (let* ((success       (cogru--success-p data))
-         (file          (cogru--data-file data))
-         (add-or-delete (ht-get data "add_or_delete"))
-         (beg           (cogru--data-point data "beg"))
-         (end           (cogru--data-point data "end"))
-         (contents      (cogru--data-contents data)))
-    (cond (success
-           (cogru--ensure-under-file file
-             (cogru--safe-edit
-               (pcase add-or-delete
-                 ("add"    (save-excursion (goto-char beg) (insert contents)))
-                 ("delete" (delete-region beg end))))))
-          (t (message "Error occurs in `file::update' handler")))))
-
-(defun cogru--handle-file-save (data)
-  "Handle the `file::save' event from DATA."
-  (let ((file     (cogru--data-file data))
-        (contents (ht-get data "contents")))
-    (cogru--handle-request data nil
-      (cogru--sync-file file contents))))
-
 (defun cogru--handle-file-sync (data)
   "Handle the `file::sync' event from DATA."
   (let ((file     (cogru--data-file data))
         (contents (ht-get data "contents")))
     (cogru--handle-request data nil
       (cogru--sync-file file contents))))
-
-(defun cogru--handle-file-sync-buffer (data)
-  "Handle the `file::sync_buffer' event from DATA."
-  (let ((file     (cogru--data-file data))
-        (contents (ht-get data "contents")))
-    (cogru--handle-request data nil
-      (cogru--sync-buffer file contents))))
 
 (defun cogru--handle-file-info (data)
   "Handle the `file::info' event from DATA."
@@ -277,6 +254,39 @@
             (cogru-tip-client-say client msg)
             (message "🗣️ %s: %s" username msg))
         (message "Try to display `file::say' message but client not found")))))
+
+;;
+;;; Response (Buffer)
+
+(defun cogru--handle-buffer-update (data)
+  "Handle the `buffer::update' event from DATA."
+  (let* ((success       (cogru--success-p data))
+         (file          (cogru--data-file data))
+         (add-or-delete (ht-get data "add_or_delete"))
+         (beg           (cogru--data-point data "beg"))
+         (end           (cogru--data-point data "end"))
+         (contents      (cogru--data-contents data)))
+    (cond (success
+           (cogru--ensure-under-file file
+             (cogru--safe-edit
+               (pcase add-or-delete
+                 ("add"    (save-excursion (goto-char beg) (insert contents)))
+                 ("delete" (delete-region beg end))))))
+          (t (message "Error occurs in `file::update' handler")))))
+
+(defun cogru--handle-buffer-save (data)
+  "Handle the `buffer::save' event from DATA."
+  (let ((file     (cogru--data-file data))
+        (contents (ht-get data "contents")))
+    (cogru--handle-request data nil
+      (cogru--sync-file file contents))))
+
+(defun cogru--handle-buffer-sync (data)
+  "Handle the `buffer::sync' event from DATA."
+  (let ((file     (cogru--data-file data))
+        (contents (ht-get data "contents")))
+    (cogru--handle-request data nil
+      (cogru--sync-buffer file contents))))
 
 (provide 'cogru-handler)
 ;;; cogru-handler.el ends here

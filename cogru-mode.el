@@ -161,9 +161,7 @@
 
 (defun cogru--after-save ()
   "After save hook."
-  (cogru--ensure-under-path
-    (cogru-send `((method . "file::save")
-                  (file   . ,(buffer-file-name))))))
+  (cogru-save-buffer))
 
 ;;
 ;;; Addition / Deletion
@@ -205,7 +203,7 @@
                 (contents      (cogru-encode-str (nth 3 data)))
                 (path          (cogru-client-path cogru--client)))
       (cogru--send-client-info)
-      (cogru-send `((method        . "file::update")
+      (cogru-send `((method        . "buffer::update")
                     (path          . ,path)            ; What file to update?
                     (add_or_delete . ,add-or-delete)   ; `add' or `delete'
                     (beg           . ,beg)             ; Beginning position
