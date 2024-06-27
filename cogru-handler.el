@@ -284,8 +284,9 @@
 
 (defun cogru--handle-buffer-sync (data)
   "Handle the `buffer::sync' event from DATA."
-  (let ((file     (cogru--data-file data))
-        (contents (ht-get data "contents")))
+  (let* ((file     (cogru--data-file data))
+         (contents (ht-get data "contents"))
+         (contents (cogru-decode-str contents)))
     (cogru--handle-request data nil
       (cogru--sync-buffer file contents))))
 
