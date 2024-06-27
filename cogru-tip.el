@@ -103,25 +103,22 @@
 
 STRING is the content of the toolip.  The location POINT.  TIMEOUT for not
 forever delay."
-  (let*
-      ((bg cogru-tip-background-color)
-       (fg cogru-tip-foreground-color)
-       (buffer-name (cogru-tip--buffer-name buffer-name))
-       (fringe-width 10)
-       (timer-name (intern buffer-name))
-       (frame (posframe-show
-               buffer-name
-               :string string :position point
-               :timeout timeout
-               :background-color bg :foreground-color fg
-               :internal-border-width 1
-               :internal-border-color (face-foreground 'font-lock-comment-face
-                                                       nil t)
-               :left-fringe fringe-width :right-fringe fringe-width
-               :override-parameters
-               (append cogru-tip-frame-parameters
-                       `((default-minibuffer-frame . ,(selected-frame))
-                         (minibuffer               . ,(minibuffer-window)))))))
+  (let* ((buffer-name (cogru-tip--buffer-name buffer-name))
+         (fringe-width 10)
+         (timer-name (intern buffer-name))
+         (frame (posframe-show
+                 buffer-name
+                 :string string :position point
+                 :timeout timeout
+                 :background-color cogru-tip-background-color
+                 :foreground-color cogru-tip-foreground-color
+                 :internal-border-width 1
+                 :internal-border-color cogru-cursor-color
+                 :left-fringe fringe-width :right-fringe fringe-width
+                 :override-parameters
+                 (append cogru-tip-frame-parameters
+                         `((default-minibuffer-frame . ,(selected-frame))
+                           (minibuffer               . ,(minibuffer-window)))))))
     (set-frame-parameter frame 'cogru-active t)
     ;; Start hide timer.
     (when hide
