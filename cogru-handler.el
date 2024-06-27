@@ -252,8 +252,8 @@
     (cogru--handle-request data nil
       (if-let ((client (cogru-client-by-username username)))
           (progn
-            (cogru-tip-client-say client msg)
-            (message "🗣️ %s: %s" username msg))
+            (cogru-tip-client-say client (format "%s: %s" username msg))
+            (message "🗣 %s: %s" username msg))
         (message "Try to display `file::say' message but client not found")))))
 
 ;;
