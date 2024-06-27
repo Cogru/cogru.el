@@ -92,7 +92,7 @@
 
 (defun cogru--under-path-p (&optional path)
   "Return non-nil if the PATH is under the workspace."
-  (when-let ((path (or path (buffer-file-name))))
+  (when-let ((path (or path (buffer-file-name) "")))
     (string-prefix-p cogru--path path t)))
 
 (defmacro cogru--ensure-connected (&rest body)
@@ -123,7 +123,11 @@
   "Run BODY only if client is under session FILE."
   (declare (indent 1))
   `(cogru--ensure-under-path
-     (when (equal ,file (buffer-file-name)) ,@body)))
+     (let* ((filename (buffer-file-name))
+            (file (or ,file filename)))
+       (when (and (equal file filename)
+                  (file-exists-p filename))
+         ,@body))))
 
 ;;
 ;;; File
@@ -194,6 +198,10 @@
   (cogru--with-file-buffer filename
     (ignore-errors
       (revert-buffer :ignore-auto :noconfirm :preserve-modes))))
+
+(defun cogru-buffer-string ()
+  "Return the entire buffer string."
+  (buffer-substring-no-properties (point-min) (point-max)))
 
 ;;
 ;;; Project

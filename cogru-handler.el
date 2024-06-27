@@ -125,16 +125,17 @@
 (defun cogru-sync-buffer ()
   "Sync the buffer."
   (interactive)
-  (cogru--ensure-under-path
+  (cogru--ensure-under-file nil
     (cogru-send `((method . "buffer::sync")
                   (file   . ,(buffer-file-name))))))
 
 (defun cogru-save-buffer ()
   "Save buffer request."
   (interactive)
-  (cogru--ensure-under-path
-    (cogru-send `((method . "buffer::save")
-                  (file   . ,(buffer-file-name))))))
+  (cogru--ensure-under-file nil
+    (cogru-send `((method   . "buffer::save")
+                  (file     . ,(buffer-file-name))
+                  (contents . ,(cogru-buffer-string))))))
 
 (defun cogru-find-user ()
   "Move to user's location."
@@ -142,7 +143,7 @@
   (cogru--ensure-connected
     (let* ((usernames (cogru-client-usernames))
            (username (completing-read "Find: " usernames)))
-      (cogru-send `((method . "room::find_user")
+      (cogru-send `((method   . "room::find_user")
                     (username . ,username))))))
 
 ;;
@@ -272,7 +273,7 @@
                (pcase add-or-delete
                  ("add"    (save-excursion (goto-char beg) (insert contents)))
                  ("delete" (delete-region beg end))))))
-          (t (message "Error occurs in `file::update' handler")))))
+          (t (message "Error occurs in `buffer::update' handler")))))
 
 (defun cogru--handle-buffer-save (data)
   "Handle the `buffer::save' event from DATA."
