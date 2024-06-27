@@ -201,7 +201,10 @@
 
 (defun cogru-buffer-string ()
   "Return the entire buffer string."
-  (buffer-substring-no-properties (point-min) (point-max)))
+  (let ((buf (buffer-substring-no-properties (point-min) (point-max))))
+    (if (eq 'dos (show-eol-get-current-system))
+        (s-replace "\n" "\r\n" buf)
+      buf)))
 
 ;;
 ;;; Project
@@ -334,7 +337,7 @@ Convert byte POS to text point."
     (byte-to-position
      (- pos
         (if (eq 'dos (show-eol-get-current-system))
-            (let* ((buf (buffer-string))
+            (let* ((buf (cogru-buffer-string))
                    (buf (s-replace "\n" "\r\n" buf)))
               (with-temp-buffer
                 (insert buf)
