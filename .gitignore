@@ -21,3 +21,6 @@ dist/
 
 # cogru
 /.cogru
+
+# macOS
+.DS_Store
