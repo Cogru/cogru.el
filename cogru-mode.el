@@ -117,6 +117,7 @@
     (add-hook 'after-change-functions #'cogru--after-change 95)
     (add-hook 'pre-command-hook #'cogru--pre-command 95)
     (add-hook 'post-command-hook #'cogru--post-command 95)
+    (add-hook 'before-save-hook #'cogru--before-save 95)
     (add-hook 'after-save-hook #'cogru--after-save 95)))
 
 (defun cogru-mode--disable ()
@@ -129,6 +130,7 @@
   (remove-hook 'after-change-functions #'cogru--after-change)
   (remove-hook 'pre-command-hook #'cogru--pre-command)
   (remove-hook 'post-command-hook #'cogru--post-command)
+  (remove-hook 'before-save-hook #'cogru--before-save)
   (remove-hook 'after-save-hook #'cogru--after-save)
   (cogru-client-clean-all)
   (cogru--cursor-revert)
@@ -158,6 +160,11 @@
                   (username . ,(cogru-client-username cogru--client))
                   (file     . ,(buffer-file-name)))))
   (run-hooks 'cogru-update-hook))
+
+(defun cogru--before-save ()
+  "Before save hook."
+  (unless (file-exists-p (buffer-file-name))
+    (set-buffer-file-coding-system 'unix)))  ; Force LF
 
 (defun cogru--after-save ()
   "After save hook."

@@ -28,6 +28,11 @@
 (require 's)
 (require 'show-eol)
 
+(defcustom cogru-after-edit-hook nil
+  "Hooks run after safe edit."
+  :type 'hook
+  :group 'cogru)
+
 ;;
 ;;; Externals
 
@@ -43,6 +48,7 @@
 
 (defvar cogru-mode)
 (declare-function cogru-mode "cogru-mode.el")
+(declare-function cogru-print "cogru.el")
 
 (defvar cogru-inhibit-change-hooks)
 
@@ -130,7 +136,7 @@
          ,@body))))
 
 ;;
-;;; File
+;;; Buffer
 
 ;; XXX: This is a hack to make sure the data will have the
 ;; same line endings with the server.
@@ -143,6 +149,78 @@
          (coding-system-for-write)
          (last-coding-system-used 'utf-8))
      ,@body))
+
+(defmacro cogru--with-buffer (buffer-or-name &rest body)
+  "Run BODY only when BUFFER-OR-NAME is safe to visit."
+  (declare (indent 1))
+  `(when-let* ((buffer (ignore-errors (get-buffer ,buffer-or-name)))
+               ((buffer-live-p buffer)))
+     (with-current-buffer buffer ,@body)))
+
+(defmacro cogru--with-file-buffer (filename &rest body)
+  "Run BODY only when FILENAME is safe to visit."
+  (declare (indent 1))
+  `(when-let* ((buffer (ignore-errors (get-file-buffer ,filename)))
+               ((buffer-live-p buffer)))
+     (with-current-buffer buffer ,@body)))
+
+(defun cogru--revert-file (filename)
+  "Revert FILENAME if the buffer is valid."
+  (cogru--with-file-buffer filename
+    (ignore-errors
+      (revert-buffer :ignore-auto :noconfirm :preserve-modes))))
+
+(defun cogru-buffer-string ()
+  "Return the entire buffer string."
+  (let ((buf (buffer-substring-no-properties (point-min) (point-max))))
+    (if (eq 'dos (show-eol-get-current-system))
+        (s-replace "\n" "\r\n" buf)
+      buf)))
+
+;;
+;;; String
+
+(defun cogru-2str (obj)
+  "Convert OBJ to string."
+  (format "%s" obj))
+
+(defun cogru-encode-str (str)
+  "Encode STR."
+  (cond ((eq 'dos (show-eol-get-current-system))
+         (s-replace "\n" "\r\n" str))
+        (t str)))
+
+(defun cogru-decode-str (str)
+  "Decode STR."
+  (cond ((eq 'dos (show-eol-get-current-system))
+         (s-replace "\r\n" "\n" str))
+        (t str)))
+
+(defmacro cogru--safe-edit (&rest body)
+  "Run BODY with no modification's side effect."
+  (declare (indent 0))
+  `(progn
+     (let ((lsp-inhibit-lsp-hooks t)
+           (cogru-inhibit-change-hooks)
+           ;;(buffer-undo-list)
+           (jit-lock-functions))
+       (elenv-with-no-redisplay ,@body))
+     (run-hooks 'cogru-after-edit-hook)))
+
+(defun cogru--replace-buffer-contents (str)
+  "Wrap function `replace-buffer-contents'
+
+Replace current buffer contents with STR."
+  (let ((tmp (get-buffer-create " *temp*")))
+    (with-current-buffer tmp
+      (cogru--ensure-coding-system
+        (insert str)))
+    (cogru--safe-edit
+      (replace-buffer-contents tmp))
+    (kill-buffer tmp)))
+
+;;
+;;; File
 
 (defun cogru--write-file (path contents)
   "Write CONTENTS to PATH."
@@ -177,85 +255,11 @@
     (format "[Cogru] Syncing buffer %s... done!" filename)))
 
 ;;
-;;; Buffer
-
-(defmacro cogru--with-buffer (buffer-or-name &rest body)
-  "Run BODY only when BUFFER-OR-NAME is safe to visit."
-  (declare (indent 1))
-  `(when-let* ((buffer (ignore-errors (get-buffer ,buffer-or-name)))
-               ((buffer-live-p buffer)))
-     (with-current-buffer buffer ,@body)))
-
-(defmacro cogru--with-file-buffer (filename &rest body)
-  "Run BODY only when FILENAME is safe to visit."
-  (declare (indent 1))
-  `(when-let* ((buffer (ignore-errors (get-file-buffer ,filename)))
-               ((buffer-live-p buffer)))
-     (with-current-buffer buffer ,@body)))
-
-(defun cogru--revert-file (filename)
-  "Revert FILENAME if the buffer is valid."
-  (cogru--with-file-buffer filename
-    (ignore-errors
-      (revert-buffer :ignore-auto :noconfirm :preserve-modes))))
-
-(defun cogru-buffer-string ()
-  "Return the entire buffer string."
-  (let ((buf (buffer-substring-no-properties (point-min) (point-max))))
-    (if (eq 'dos (show-eol-get-current-system))
-        (s-replace "\n" "\r\n" buf)
-      buf)))
-
-;;
 ;;; Project
 
 (defun cogru-expand-path (path)
   "Convert PATH to project path."
   (ignore-errors (expand-file-name path cogru--path)))
-
-;;
-;;; String
-
-(defun cogru-2str (obj)
-  "Convert OBJ to string."
-  (format "%s" obj))
-
-(defun cogru-encode-str (str)
-  "Encode STR."
-  (cond ((eq 'dos (show-eol-get-current-system))
-         (s-replace "\n" "\r\n" str))
-        (t str)))
-
-(defun cogru-decode-str (str)
-  "Decode STR."
-  (cond ((eq 'dos (show-eol-get-current-system))
-         (s-replace "\r\n" "\n" str))
-        (t str)))
-
-(defmacro cogru--safe-edit (&rest body)
-  "Run BODY with no modification's side effect."
-  (declare (indent 0))
-  `(let ((lsp-inhibit-lsp-hooks t)
-         (cogru-inhibit-change-hooks)
-         ;;(buffer-undo-list)
-         (jit-lock-functions))
-     (elenv-with-no-redisplay ,@body)))
-
-(defun cogru--replace-buffer-contents (str)
-  "Wrap function `replace-buffer-contents'
-
-Replace current buffer contents with STR."
-  (let ((tmp (get-buffer-create " *temp*")))
-    (with-current-buffer tmp
-      (cogru--ensure-coding-system
-        (insert str)))
-    (cogru--safe-edit
-      (replace-buffer-contents tmp))
-    (kill-buffer tmp)))
-
-(defun cogru-insert (&rest args)
-  "Insert STR to buffer."
-  (cogru--safe-edit (apply #'insert args)))
 
 ;;
 ;;; IO

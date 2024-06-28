@@ -81,6 +81,8 @@
 (declare-function cogru-send "cogru.el")
 (declare-function cogru-print "cogru.el")
 
+(defvar cogru-cursor-color)
+
 ;;
 ;;; Util
 

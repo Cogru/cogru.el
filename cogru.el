@@ -42,6 +42,7 @@
 (require 'cogru-util)
 (require 'cogru-handler)
 (require 'cogru-client)
+(require 'cogru-tree-sitter)
 
 (defgroup cogru nil
   "Cogru plugin for real-time collaborative editing."
