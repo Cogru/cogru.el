@@ -33,7 +33,7 @@ These are the commands you can use for collaborative editing.
 | `cogru-save-buffer` | Save buffer request.            |
 | `cogru-find-user`   | Move to an user's location.     |
 
-## 🛠️ Contribute
+## 🛠 Contribute
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 [![Elisp styleguide](https://img.shields.io/badge/elisp-style%20guide-purple)](https://github.com/bbatsov/emacs-lisp-style-guide)
