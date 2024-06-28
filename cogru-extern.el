@@ -1,4 +1,4 @@
-;;; cogru-tree-sitter.el --- Tree-sitter module  -*- lexical-binding: t; -*-
+;;; cogru-extern.el --- Externals module  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2024  Shen, Jen-Chieh
 
@@ -19,7 +19,7 @@
 
 ;;; Commentary:
 ;;
-;; Tree-sitter module.
+;; Externals module.
 ;;
 
 ;;; Code:
@@ -46,5 +46,5 @@
 
 ;; TODO: ..
 
-(provide 'cogru-tree-sitter)
-;;; cogru-tree-sitter.el ends here
+(provide 'cogru-extern)
+;;; cogru-extern.el ends here
