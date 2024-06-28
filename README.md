@@ -23,7 +23,7 @@ These are the commands you can use for collaborative editing.
 | `cogru-start`       | Connect to the server.          |
 | `cogru-stop`        | Disconnect from the server.     |
 | `cogru-enter`       | Enter the room.                 |
-| `cogru-ext`         | Exit the room.                  |
+| `cogru-exit`        | Exit the room.                  |
 | `cogru-kick`        | Kick an user. (admin-only)      |
 | `cogru-broadcast`   | Send a message across the room. |
 | `cogru-say`         | Say something in the file.      |
