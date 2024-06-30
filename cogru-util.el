@@ -263,13 +263,10 @@ Replace current buffer contents with STR."
   (coru-with-progress
     (format "[Cogru] Syncing buffer %s..." filename)
     (cogru--with-file-buffer filename
-      (let ((pt (point))
-            (wstart (window-start)))
+      (elenv-save-window-excursion
         (cogru--safe-edit
           (erase-buffer)
-          (insert contents))
-        (set-window-start nil wstart)
-        (goto-char pt)))
+          (insert contents))))
     (format "[Cogru] Syncing buffer %s... done!" filename)))
 
 ;;
