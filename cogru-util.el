@@ -258,16 +258,22 @@ Replace current buffer contents with STR."
                  (cogru--revert-file filename))
     (format "[Cogru] Syncing file %s... done!" filename)))
 
+(defun cogru--buffer-diff-p (contents &optional buffer)
+  "Return non-nil if CONTENTS is different then BUFFER's string."
+  (with-current-buffer (or buffer (current-buffer))
+    (not (equal (md5 contents) (md5 (buffer-string))))))
+
 (defun cogru--sync-buffer (filename contents)
   "Sync FILENAME's buffer with CONTENTS."
-  (coru-with-progress
-    (format "[Cogru] Syncing buffer %s..." filename)
-    (cogru--with-file-buffer filename
-      (elenv-save-window-excursion
-        (cogru--safe-edit
-          (erase-buffer)
-          (insert contents))))
-    (format "[Cogru] Syncing buffer %s... done!" filename)))
+  (cogru--with-file-buffer filename
+    (when (cogru--buffer-diff-p contents)
+      (coru-with-progress
+        (format "[Cogru] Syncing buffer %s..." filename)
+        (elenv-save-window-excursion
+          (cogru--safe-edit
+            (erase-buffer)
+            (insert contents)))
+        (format "[Cogru] Syncing buffer %s... done!" filename)))))
 
 ;;
 ;;; Project

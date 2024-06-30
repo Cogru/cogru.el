@@ -174,24 +174,22 @@
 
 (defun cogru--handle-room-enter (data)
   "Handle the `room::enter' event from DATA."
-  (let* ((username (ht-get data "username"))
-         (msg      (ht-get data "message"))
-         (success  (cogru--success-p data)))
-    (cond (success
-           ;; Validate client and sync!
-           (when (string= username (cogru-client-username cogru--client))
-             (cogru-sync-room)))
-          (t
-           ;; Invalidate client!
-           (setq cogru--client nil)))
-    (message msg)))
+  (let* ((username (ht-get data "username")))
+    (cogru--handle-request data
+        (progn (setq cogru--client nil)  ; Invalidate client!
+               (message msg))            ; Print error
+      ;; Validate client and sync!
+      (when (string= username (cogru-client-username cogru--client))
+        (cogru-sync-room))
+      (message "🚪 %s has entered the room" username))))
 
 (defun cogru--handle-room-exit (data)
   "Handle the `room::exit' event from DATA."
-  (let ((msg     (ht-get data "message"))
-        (success (cogru--success-p data)))
-    (when success (setq cogru--client nil))
-    (message msg)))
+  (let ((username (ht-get data "username")))
+    (cogru--handle-request data
+        (message msg)  ; Print error
+      (setq cogru--client nil)
+      (message "🚪 %s has left the room" username))))
 
 (defun cogru--handle-room-kick (data)
   "Handle the `room::kick' event from DATA."
