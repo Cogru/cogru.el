@@ -230,7 +230,8 @@ First message we send to the server."
                  ("buffer::save"    #'cogru--handle-buffer-save)
                  ("buffer::sync"    #'cogru--handle-buffer-sync)
                  (_ (cogru-print "[Cogru] Unknown action to handle: %s" method)))))
-    (funcall func data)))
+    (when (functionp func)
+      (funcall func data))))
 
 ;;;###autoload
 (defun cogru-start ()

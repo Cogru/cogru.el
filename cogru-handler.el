@@ -47,6 +47,14 @@
 (defvar cogru-inhibit-change-hooks)
 
 ;;
+;;; Util
+
+(defun cogru--this-user-p (username)
+  "Return non-nil if the USERNAME is referring to current client."
+  (when-let ((this-username (cogru-client-username cogru--client)))
+    (string= username this-username)))
+
+;;
 ;;; Request
 
 (defun cogru-test ()
@@ -179,7 +187,7 @@
         (progn (setq cogru--client nil)  ; Invalidate client!
                (message msg))            ; Print error
       ;; Validate client and sync!
-      (when (string= username (cogru-client-username cogru--client))
+      (when (cogru--this-user-p username)
         (cogru-sync-room))
       (message "🚪 %s has entered the room" username))))
 
@@ -188,7 +196,8 @@
   (let ((username (ht-get data "username")))
     (cogru--handle-request data
         (message msg)  ; Print error
-      (setq cogru--client nil)
+      (when (cogru--this-user-p username)
+        (setq cogru--client nil))
       (message "🚪 %s has left the room" username))))
 
 (defun cogru--handle-room-kick (data)
