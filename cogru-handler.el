@@ -28,6 +28,9 @@
 (require 'cogru-tip)
 (require 'cogru-client)
 
+(defvar cogru-chat-history nil
+  "List of chat history in string.")
+
 ;;
 ;;; Externals
 
@@ -95,7 +98,13 @@
   "Broadcast MSG across the room."
   (interactive)
   (cogru--ensure-connected
-    (let ((msg (or msg (read-string "Broadcast: "))))
+    (let ((msg (or msg
+                   (completing-read
+                    "Broadcast: "
+                    (lambda (string pred action)
+                      (cogru-presorted-completions string pred action
+                                                   cogru-chat-history))))))
+      (cogru-add-completion-history msg 'cogru-chat-history)
       (cogru-send `((method  . "room::broadcast")
                     (message . ,msg))))))
 
@@ -103,7 +112,13 @@
   "Say MSG across the file."
   (interactive)
   (cogru--ensure-under-path
-    (let ((msg (or msg (read-string "Say: "))))
+    (let ((msg (or msg
+                   (completing-read
+                    "Say: "
+                    (lambda (string pred action)
+                      (cogru-presorted-completions string pred action
+                                                   cogru-chat-history))))))
+      (cogru-add-completion-history msg 'cogru-chat-history)
       (cogru-send `((method  . "file::say")
                     (message . ,msg)
                     (file    . ,(buffer-file-name)))))))

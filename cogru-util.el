@@ -136,6 +136,24 @@
          ,@body))))
 
 ;;
+;;; History
+
+(defun cogru-presorted-completions (string pred action completions)
+  "Sort COMPLETIONS in it's order.
+
+Argument STRING, PRED and ACTION are required parameters."
+  (if (eq action 'metadata)
+      `(metadata (display-sort-function . ,#'identity))
+    (complete-with-action action completions string pred)))
+
+(defun cogru-add-completion-history (elt history)
+  "Add ELT to HISTORY."
+  ;; Remove duplicate first.
+  (set history (cl-delete elt (symbol-value history) :test 'equal))
+  ;; Push it on top.
+  (push elt (symbol-value history)))
+
+;;
 ;;; Buffer
 
 ;; XXX: This is a hack to make sure the data will have the
