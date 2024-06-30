@@ -178,7 +178,8 @@
 
 (defun cogru--handle-pong (data)
   "Handle the `poing' event from DATA."
-  (message "%s" data))
+  (cogru--handle-request data nil
+    (message msg)))
 
 (defun cogru--handle-room-enter (data)
   "Handle the `room::enter' event from DATA."
@@ -198,7 +199,7 @@
         (message msg)  ; Print error
       (when (cogru--this-user-p username)
         (setq cogru--client nil))
-      (message "🚪 %s has left the room" username))))
+      (message "👋 %s has left the room" username))))
 
 (defun cogru--handle-room-kick (data)
   "Handle the `room::kick' event from DATA."
