@@ -148,9 +148,10 @@
 (defun cogru-new-file (&optional filename)
   "Add a new file."
   (cogru--ensure-under-path
-    (cogru-send `((method   . "file::add")
-                  (file     . ,(or filename (buffer-file-name)))
-                  (contents . ,(elenv-file-contents))))))
+    (let ((filename (or filename (buffer-file-name))))
+      (cogru-send `((method   . "file::add")
+                    (file     . ,filename)
+                    (contents . ,(elenv-file-contents filename)))))))
 
 (defun cogru-delete-file (&optional filename)
   "Delete the file."
