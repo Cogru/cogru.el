@@ -118,7 +118,9 @@
     (add-hook 'pre-command-hook #'cogru--pre-command 95)
     (add-hook 'post-command-hook #'cogru--post-command 95)
     (add-hook 'before-save-hook #'cogru--before-save 95)
-    (add-hook 'after-save-hook #'cogru--after-save 95)))
+    (add-hook 'after-save-hook #'cogru--after-save 95)
+    (advice-add 'delete-file :after #'cogru--after-delete-file)
+    (advice-add 'rename-file :after #'cogru--after-rename-file)))
 
 (defun cogru-mode--disable ()
   "Disable `cogru-mode'."
@@ -132,12 +134,14 @@
   (remove-hook 'post-command-hook #'cogru--post-command)
   (remove-hook 'before-save-hook #'cogru--before-save)
   (remove-hook 'after-save-hook #'cogru--after-save)
+  (advice-remove 'delete-file #'cogru--after-delete-file)
+  (advice-remove 'rename-file #'cogru--after-rename-file)
   (cogru-client-clean-all)
   (cogru--cursor-revert)
   (cogru-stop))
 
 ;;
-;;; Core
+;;; Editing
 
 (defun cogru--after-focus (&rest _)
   "Function runs after focusing the frame."
@@ -169,6 +173,30 @@
 (defun cogru--after-save ()
   "After save hook."
   (cogru-save-buffer))
+
+;;
+;;; File
+
+(defun cogru--after-delete-file (filename &rest _)
+  "After FILENAME deletion."
+  (cogru--ensure-under-path
+    (unless (file-exists-p filename)
+      (cogru-delete-file filename))))
+
+(defun cogru--after-rename-file (file newname &rest _)
+  "After FILE renamed to NEWNAME."
+  (let* ((file    (expand-file-name file))
+         (newname (expand-file-name newname))
+         (was-under-p  (cogru--under-path-p file))
+         (is-under-p (and was-under-p
+                          (cogru--under-path-p newname))))
+    (cond ((and was-under-p is-under-p)  ; renaming
+           )
+          ((and was-under-p (not is-under-p))  ; moved out of project; file removed
+           (cogru-delete-file file))
+          ((and (not was-under-p) is-under-p)  ; moved into project; new file
+
+           ))))
 
 ;;
 ;;; Addition / Deletion

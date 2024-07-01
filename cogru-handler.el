@@ -145,6 +145,20 @@
     (cogru-send `((method . "file::sync")
                   (file   . ,(buffer-file-name))))))
 
+(defun cogru-new-file (&optional filename)
+  "Add a new file."
+  (cogru--ensure-under-path
+    (cogru-send `((method   . "file::add")
+                  (file     . ,(or filename (buffer-file-name)))
+                  (contents . ,(elenv-file-contents))))))
+
+(defun cogru-delete-file (&optional filename)
+  "Delete the file."
+  (interactive)
+  (cogru--ensure-under-path
+    (cogru-send `((method . "file::delete")
+                  (file   . ,(or filename (buffer-file-name)))))))
+
 (defun cogru-sync-buffer ()
   "Sync the buffer."
   (interactive)
@@ -156,16 +170,18 @@
   "Save buffer request."
   (interactive)
   (cogru--ensure-under-file nil
-    (cogru-send `((method   . "buffer::save")
-                  (file     . ,(buffer-file-name))
-                  (contents . ,(cogru-buffer-string))))))
+    (cogru-new-file (buffer-file-name))  ; TODO: Use this instead?
+    ;; (cogru-send `((method   . "buffer::save")
+    ;;               (file     . ,(buffer-file-name))
+    ;;               (contents . ,(cogru-buffer-string))))
+    ))
 
 (defun cogru-find-user ()
   "Move to user's location."
   (interactive)
   (cogru--ensure-connected
     (let* ((usernames (cogru-client-usernames))
-           (username (completing-read "Find: " usernames)))
+           (username  (completing-read "Find: " usernames)))
       (cogru-send `((method   . "room::find_user")
                     (username . ,username))))))
 
