@@ -170,7 +170,7 @@
                     (username . ,username))))))
 
 ;;
-;;; Response (Room)
+;;; Response (General)
 
 (defun cogru--handle-test (data)
   "Handle the `test' event from DATA."
@@ -180,6 +180,9 @@
   "Handle the `poing' event from DATA."
   (cogru--handle-request data nil
     (message msg)))
+
+;;
+;;; Response (Room)
 
 (defun cogru--handle-room-enter (data)
   "Handle the `room::enter' event from DATA."
