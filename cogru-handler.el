@@ -145,37 +145,12 @@
     (cogru-send `((method . "file::sync")
                   (file   . ,(buffer-file-name))))))
 
-(defun cogru-new-file (&optional filename)
-  "Add a new file."
-  (cogru--ensure-under-path
-    (let ((filename (or filename (buffer-file-name))))
-      (cogru-send `((method   . "file::add")
-                    (file     . ,filename)
-                    (contents . ,(elenv-file-contents filename)))))))
-
-(defun cogru-delete-file (&optional filename)
-  "Delete the file."
-  (interactive)
-  (cogru--ensure-under-path
-    (cogru-send `((method . "file::delete")
-                  (file   . ,(or filename (buffer-file-name)))))))
-
 (defun cogru-sync-buffer ()
   "Sync the buffer."
   (interactive)
   (cogru--ensure-under-file nil
     (cogru-send `((method . "buffer::sync")
                   (file   . ,(buffer-file-name))))))
-
-(defun cogru-save-buffer ()
-  "Save buffer request."
-  (interactive)
-  (cogru--ensure-under-file nil
-    (cogru-new-file (buffer-file-name))  ; TODO: Use this instead?
-    ;; (cogru-send `((method   . "buffer::save")
-    ;;               (file     . ,(buffer-file-name))
-    ;;               (contents . ,(cogru-buffer-string))))
-    ))
 
 (defun cogru-find-user ()
   "Move to user's location."
@@ -185,6 +160,27 @@
            (username  (completing-read "Find: " usernames)))
       (cogru-send `((method   . "room::find_user")
                     (username . ,username))))))
+
+(defun cogru-new-file (&optional filename)
+  "Add FILENAME to the server.."
+  (cogru--ensure-under-path
+    (let ((filename (or filename (buffer-file-name))))
+      (cogru-send `((method   . "room::add_file")
+                    (file     . ,filename)
+                    (contents . ,(elenv-file-contents filename)))))))
+
+(defun cogru-delete-file (&optional filename)
+  "Delete the FILENAME from the server.."
+  (cogru--ensure-under-path
+    (cogru-send `((method . "rooom::delete_file")
+                  (file   . ,(or filename (buffer-file-name)))))))
+
+(defun cogru-rename-file (file newname)
+  "Rename the FILE to NEWNAME from the server.."
+  (cogru--ensure-under-path
+    (cogru-send `((method  . "room::rename_file")
+                  (file    . ,file)
+                  (newname . ,newname)))))
 
 ;;
 ;;; Response (General)
@@ -254,6 +250,19 @@
         (with-current-buffer (find-file file)
           (goto-char point))))))
 
+(defun cogru--handle-room-add-file (data)
+  "Handle the `room::add_file' event from DATA."
+  (let ((file     (cogru--data-file data))
+        (contents (ht-get data "contents")))
+    (cogru--handle-request data nil
+      (cogru--sync-file file contents))))
+
+(defun cogru--handle-room-delete-file (data)
+  "Handle the `room::delete_file' event from DATA.")
+
+(defun cogru--handle-room-rename-file (data)
+  "Handle the `room::rename_file' event from DATA.")
+
 ;;
 ;;; Response (File)
 
@@ -317,13 +326,6 @@
                  ("add"    (save-excursion (goto-char beg) (insert contents)))
                  ("delete" (delete-region beg end))))))
           (t (message "Error occurs in `buffer::update' handler")))))
-
-(defun cogru--handle-buffer-save (data)
-  "Handle the `buffer::save' event from DATA."
-  (let ((file     (cogru--data-file data))
-        (contents (ht-get data "contents")))
-    (cogru--handle-request data nil
-      (cogru--sync-file file contents))))
 
 (defun cogru--handle-buffer-sync (data)
   "Handle the `buffer::sync' event from DATA."

@@ -172,7 +172,7 @@
 
 (defun cogru--after-save ()
   "After save hook."
-  (cogru-save-buffer))
+  (cogru-new-file))
 
 ;;
 ;;; File
@@ -191,12 +191,11 @@
          (is-under-p (and was-under-p
                           (cogru--under-path-p newname))))
     (cond ((and was-under-p is-under-p)  ; renaming
-           )
+           (cogru-rename-file file newname))
           ((and was-under-p (not is-under-p))  ; moved out of project; file removed
            (cogru-delete-file file))
           ((and (not was-under-p) is-under-p)  ; moved into project; new file
-
-           ))))
+           (cogru-new-file newname)))))
 
 ;;
 ;;; Addition / Deletion

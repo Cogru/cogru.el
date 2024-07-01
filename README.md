@@ -30,7 +30,6 @@ These are the commands you can use for collaborative editing.
 | `cogru-sync-room`   | Sync the entire room files.     |
 | `cogru-sync-file`   | Synce the file.                 |
 | `cogru-sync-buffer` | Synce the file.                 |
-| `cogru-save-buffer` | Save buffer request.            |
 | `cogru-find-user`   | Move to an user's location.     |
 
 ## 🛠 Contribute
