@@ -47,7 +47,8 @@
   :group 'cogru)
 
 (defvar cogru-tip-frame-parameters
-  `((left                     . -1)
+  `((cogru                    . t)
+    (left                     . -1)
     (no-focus-on-map          . t)
     (min-width                . 0)
     (width                    . 0)
