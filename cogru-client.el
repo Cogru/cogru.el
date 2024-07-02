@@ -54,6 +54,9 @@
   :type 'integer
   :group 'cogru)
 
+(defvar cogru--inputted-username nil
+  "Inputted username; used to later verify enter the room.")
+
 (defvar cogru--client nil
   "Local client represent self.")
 

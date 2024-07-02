@@ -36,6 +36,7 @@
 
 (defvar lsp-inhibit-lsp-hooks)
 
+(defvar cogru--inputted-username)
 (defvar cogru--path)
 
 (declare-function cogru-send "cogru.el")
@@ -52,8 +53,7 @@
 
 (defun cogru--this-user-p (username)
   "Return non-nil if the USERNAME is referring to current client."
-  (when-let ((this-username (cogru-client-username cogru--client)))
-    (string= username this-username)))
+  (string= username cogru--inputted-username))
 
 ;;
 ;;; Request
@@ -77,8 +77,7 @@
     (let ((username (read-string "Enter your username: " user-full-name))
           (password (and (y-or-n-p "Does the server requires a password to enter? ")
                          (read-string "Enter password: "))))
-      ;; Frist make the client.
-      (setq cogru--client (cogru-client-create :username username))
+      (setq cogru--inputted-username username)
       (cogru-send `((method   . "room::enter")
                     (username . ,username)
                     (password . ,password))))))
@@ -206,6 +205,8 @@
                (message msg))            ; Print error
       ;; Validate client and sync!
       (when (cogru--this-user-p username)
+        ;; Create the client.
+        (setq cogru--client (cogru-client-create :username username))
         (cogru-sync-room))
       (message "🚪 %s has entered the room" username))))
 
