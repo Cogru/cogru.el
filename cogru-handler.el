@@ -179,7 +179,7 @@
 (defun cogru-delete-file (&optional filename)
   "Delete the FILENAME from the server.."
   (cogru--ensure-under-path
-    (cogru-send `((method . "rooom::delete_file")
+    (cogru-send `((method . "room::delete_file")
                   (file   . ,(or filename (buffer-file-name)))))))
 
 (defun cogru-rename-file (file newname)
