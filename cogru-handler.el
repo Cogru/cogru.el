@@ -131,6 +131,13 @@
                     (message . ,msg)
                     (file    . ,(buffer-file-name)))))))
 
+(defun cogru-clear-chat-history ()
+  "Clear char history."
+  (interactive)
+  (let ((count (length cogru-chat-history)))
+    (setq cogru-chat-history nil)
+    (cogru-print "[Cogru] Chat history cleared: %s" count)))
+
 (defun cogru-sync-room ()
   "Sync room files."
   (interactive)
