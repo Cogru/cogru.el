@@ -112,6 +112,9 @@
 ;;
 ;;; Core
 
+(defvar cogru-inhibit-process-send nil
+  "Set to non-nil to inhibit process to send data.")
+
 (defconst cogru--content-length-len (string-bytes "Content-Length: ")
   "Hold the text content-length's length.")
 
@@ -120,7 +123,8 @@
 
 (defun cogru-send (obj)
   "Send message OBJ to the server."
-  (process-send-string cogru--process (cogru--make-message obj)))
+  (unless cogru-inhibit-process-send
+    (process-send-string cogru--process (cogru--make-message obj))))
 
 (defun cogru--content-length (data)
   "Return the content length in number from DATA."

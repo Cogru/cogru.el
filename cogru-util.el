@@ -70,9 +70,9 @@
   "Return success status from DATA."
   (string= (ht-get data "status") "success"))
 
-(defun cogru--data-file (data)
-  "Return file from DATA."
-  (when-let* ((file (ht-get data "file"))
+(defun cogru--data-file (data &optional key)
+  "Return KEY file from DATA."
+  (when-let* ((file (ht-get data (or key "file")))
               (file (cogru-expand-path file)))
     file))
 

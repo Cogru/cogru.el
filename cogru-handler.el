@@ -44,6 +44,7 @@
 (defvar cogru-mode)
 (declare-function cogru-mode "cogru-mode.el")
 
+(defvar cogru-inhibit-process-send)
 (defvar cogru-inhibit-change-hooks)
 
 ;;
@@ -258,10 +259,19 @@
       (cogru--sync-file file contents))))
 
 (defun cogru--handle-room-delete-file (data)
-  "Handle the `room::delete_file' event from DATA.")
+  "Handle the `room::delete_file' event from DATA."
+  (let ((cogru-inhibit-process-send t)
+        (file (cogru--data-file data)))
+    (cogru--handle-request data nil
+      (delete-file file))))
 
 (defun cogru--handle-room-rename-file (data)
-  "Handle the `room::rename_file' event from DATA.")
+  "Handle the `room::rename_file' event from DATA."
+  (let ((cogru-inhibit-process-send t)
+        (file    (cogru--data-file data))
+        (newname (cogru--data-file data "newname")))
+    (cogru--handle-request data nil
+      (rename-file file newname))))
 
 ;;
 ;;; Response (File)
