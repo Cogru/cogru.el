@@ -300,7 +300,7 @@
   "Handle the `file::info' event from DATA."
   (let* ((clients (ht-get data "clients"))
          (clients (cogru--json-read-from-string clients)))
-    (cogru-client-deactivate-all)  ; Deactivate all before getting the activate one!
+    (cogru-client-deactivate-all)  ; Deactivate all before set `activate' flag!
     (mapc (lambda (client)
             (let* ((username     (ht-get client "username"))
                    (path         (ht-get client "path"))
@@ -317,7 +317,7 @@
                   (cogru-client-get-or-create username path
                                               point region-beg region-end
                                               color-cursor color-region
-                                              t)))))  ; Set activate!
+                                              t)))))  ; Set `activate' flag!
           clients)
     (cogru-client--render-all)))
 
@@ -348,8 +348,9 @@
                (pcase add-or-delete
                  ("add"    (save-excursion (goto-char beg) (insert contents)))
                  ("delete" (delete-region beg end))))
-             (cogru-client--predict-render-all
-              (cogru--predict-delta add-or-delete beg end))))
+             ;; (cogru-client--predict-render-all
+             ;;  (cogru--predict-delta add-or-delete beg end))
+             ))
           (t (message "Error occurs in `buffer::update' handler")))))
 
 (defun cogru--handle-buffer-save (data)

@@ -252,8 +252,9 @@
                     (end           . ,end)             ; End position
                     (contents      . ,contents)))      ; Only used for addition!
       ;; Render prediction!
-      (cogru-client--predict-render-all
-       (cogru--predict-delta add-or-delete beg end)))))
+      ;; (cogru-client--predict-render-all
+      ;;  (cogru--predict-delta add-or-delete beg end))
+      )))
 
 ;;
 ;;; Post
@@ -267,10 +268,10 @@
            (point (point))
            (region-beg (and use-region (region-beginning)))
            (region-end (and use-region (region-end))))
-      (setf (cogru-client-path cogru--client) path)
-      (setf (cogru-client-point cogru--client) point)
-      (setf (cogru-client-region-beg cogru--client) region-beg)
-      (setf (cogru-client-region-end cogru--client) region-end)
+      (setf (cogru-client-path         cogru--client) path)
+      (setf (cogru-client-point        cogru--client) point)
+      (setf (cogru-client-region-beg   cogru--client) region-beg)
+      (setf (cogru-client-region-end   cogru--client) region-end)
       (setf (cogru-client-color-cursor cogru--client) cogru-cursor-color)
       (setf (cogru-client-color-region cogru--client) cogru-region-color))))
 
@@ -278,13 +279,13 @@
   "Send the client information."
   (cogru--client-update-info)  ; Update status before send.
   (cogru--ensure-entered
-    (let* ((path         (cogru-client-path cogru--client))
-           (point        (cogru-client-point cogru--client))
-           (point        (cogru-encode-point point))
-           (region-beg   (cogru-client-region-beg cogru--client))
-           (region-beg   (cogru-encode-point region-beg))
-           (region-end   (cogru-client-region-end cogru--client))
-           (region-end   (cogru-encode-point region-end))
+    (let* ((path         (cogru-client-path         cogru--client))
+           (point        (cogru-client-point        cogru--client))
+           (point        (cogru-encode-point        point))
+           (region-beg   (cogru-client-region-beg   cogru--client))
+           (region-beg   (cogru-encode-point        region-beg))
+           (region-end   (cogru-client-region-end   cogru--client))
+           (region-end   (cogru-encode-point        region-end))
            (color-cursor (cogru-client-color-cursor cogru--client))
            (color-region (cogru-client-color-region cogru--client)))
       (when (or path (not cogru--cleared-client-p))
