@@ -113,6 +113,7 @@
     (add-function :after after-focus-change-function #'cogru--after-focus)
     (add-hook 'window-selection-change-functions #'cogru--window-x-change 95)
     (add-hook 'window-buffer-change-functions #'cogru--window-x-change 95)
+    (add-hook 'find-file-hook #'cogru--find-file 95)
     (add-hook 'before-change-functions #'cogru--before-change 95)
     (add-hook 'after-change-functions #'cogru--after-change 95)
     (add-hook 'pre-command-hook #'cogru--pre-command 95)
@@ -128,6 +129,7 @@
   (remove-function after-focus-change-function #'cogru--after-focus)
   (remove-hook 'window-selection-change-functions #'cogru--window-x-change)
   (remove-hook 'window-buffer-change-functions #'cogru--window-x-change)
+  (remove-hook 'find-file-hook #'cogru--find-file)
   (remove-hook 'before-change-functions #'cogru--before-change)
   (remove-hook 'after-change-functions #'cogru--after-change)
   (remove-hook 'pre-command-hook #'cogru--pre-command)
@@ -155,6 +157,10 @@
   (cogru--ensure-under-path
     (unless (equal cogru--current-buffer (current-buffer))
       (cogru-sync-buffer))))
+
+(defun cogru--find-file (&rest _)
+  "Find file hook."
+  (cogru-new-file))
 
 (defun cogru--update ()
   "Update between interval."
