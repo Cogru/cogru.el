@@ -234,6 +234,7 @@ First message we send to the server."
                  ("file::info"        #'cogru--handle-file-info)
                  ("file::say"         #'cogru--handle-file-say)
                  ("buffer::update"    #'cogru--handle-buffer-update)
+                 ("buffer::save"      #'cogru--handle-buffer-save)
                  ("buffer::sync"      #'cogru--handle-buffer-sync)
                  (_ (cogru-print "[Cogru] Unknown action to handle: %s" method)))))
     (when (functionp func)

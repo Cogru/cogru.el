@@ -176,9 +176,9 @@
   (unless (file-exists-p (buffer-file-name))
     (set-buffer-file-coding-system 'unix)))  ; Force LF
 
-(defun cogru--after-save ()
+(defun cogru--after-save (&rest _)
   "After save hook."
-  (cogru-new-file))
+  (cogru-save-buffer))
 
 ;;
 ;;; File
@@ -242,13 +242,18 @@
                                  (cogru-encode-point (nth 2 data))))
                 (contents      (cogru-encode-str (nth 3 data)))
                 (path          (cogru-client-path cogru--client)))
-      (cogru--send-client-info)
+      (progn  ; Immediate send the client's info!
+        (cogru--send-client-info)
+        (cogru--schedule-send-client-info))  ; then reschedule it
       (cogru-send `((method        . "buffer::update")
                     (path          . ,path)            ; What file to update?
                     (add_or_delete . ,add-or-delete)   ; `add' or `delete'
                     (beg           . ,beg)             ; Beginning position
                     (end           . ,end)             ; End position
-                    (contents      . ,contents))))))   ; Only used for addition!
+                    (contents      . ,contents)))      ; Only used for addition!
+      ;; Render prediction!
+      (cogru-client--predict-render-all
+       (cogru--predict-delta add-or-delete beg end)))))
 
 ;;
 ;;; Post
