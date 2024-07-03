@@ -159,6 +159,13 @@
     (cogru-send `((method . "buffer::sync")
                   (file   . ,(buffer-file-name))))))
 
+(defun cogru-save-buffer ()
+  "Save the buffer."
+  (cogru--ensure-under-file nil
+    (cogru-send `((method   . "buffer::save")
+                  (file     . ,(buffer-file-name))
+                  (contents . ,(cogru-buffer-string))))))
+
 (defun cogru-find-user ()
   "Move to user's location."
   (interactive)
@@ -262,10 +269,7 @@
 
 (defun cogru--handle-room-add-file (data)
   "Handle the `room::add_file' event from DATA."
-  (let ((file     (cogru--data-file data))
-        (contents (ht-get data "contents")))
-    (cogru--handle-request data nil
-      (cogru--sync-file file contents))))
+  (cogru--handle-buffer-save data))
 
 (defun cogru--handle-room-delete-file (data)
   "Handle the `room::delete_file' event from DATA."
@@ -343,8 +347,17 @@
              (cogru--safe-edit
                (pcase add-or-delete
                  ("add"    (save-excursion (goto-char beg) (insert contents)))
-                 ("delete" (delete-region beg end))))))
+                 ("delete" (delete-region beg end))))
+             (cogru-client--predict-render-all
+              (cogru--predict-delta add-or-delete beg end))))
           (t (message "Error occurs in `buffer::update' handler")))))
+
+(defun cogru--handle-buffer-save (data)
+  "Handle the `buffer::save' event from DATA."
+  (let ((file     (cogru--data-file data))
+        (contents (ht-get data "contents")))
+    (cogru--handle-request data nil
+      (cogru--sync-file file contents))))
 
 (defun cogru--handle-buffer-sync (data)
   "Handle the `buffer::sync' event from DATA."
