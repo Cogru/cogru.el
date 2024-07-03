@@ -171,7 +171,8 @@
 (defun cogru-new-file (&optional filename)
   "Add FILENAME to the server.."
   (cogru--ensure-under-path
-    (let ((filename (or filename (buffer-file-name))))
+    (when-let* ((filename (or filename (buffer-file-name)))
+                ((file-exists-p filename)))  ; Only when file exists!
       (cogru-send `((method   . "room::add_file")
                     (file     . ,filename)
                     (contents . ,(elenv-file-contents filename)))))))
