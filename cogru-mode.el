@@ -242,18 +242,13 @@
                                  (cogru-encode-point (nth 2 data))))
                 (contents      (cogru-encode-str (nth 3 data)))
                 (path          (cogru-client-path cogru--client)))
-      (progn  ; Immediate send the client's info!
-        (cogru--send-client-info)
-        (cogru--schedule-send-client-info))  ; then reschedule it
       (cogru-send `((method        . "buffer::update")
                     (path          . ,path)            ; What file to update?
                     (add_or_delete . ,add-or-delete)   ; `add' or `delete'
                     (beg           . ,beg)             ; Beginning position
                     (end           . ,end)             ; End position
                     (contents      . ,contents)))      ; Only used for addition!
-      ;; Render prediction!
-      (cogru-client--predict-render-all
-       (cogru--predict-delta add-or-delete beg end)))))
+      )))
 
 ;;
 ;;; Post
@@ -295,7 +290,8 @@
                       (region_end   . ,region-end)
                       (color_cursor . ,color-cursor)
                       (color_region . ,color-region)
-                      (md5_contents . ,(md5 (cogru-buffer-string)))))
+                      ;;(md5_contents . ,(md5 (cogru-buffer-string)))
+                      ))
         (setq cogru--cleared-client-p nil))
       ;; Flag to clean up the client info once before stop
       ;; sending further more data.

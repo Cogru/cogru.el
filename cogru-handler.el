@@ -337,6 +337,7 @@
 (defun cogru--handle-buffer-update (data)
   "Handle the `buffer::update' event from DATA."
   (let* ((success       (cogru--success-p data))
+         (username      (ht-get data "username"))
          (file          (cogru--data-file data))
          (add-or-delete (ht-get data "add_or_delete"))
          (beg           (cogru--data-point data "beg"))
@@ -348,8 +349,11 @@
                (pcase add-or-delete
                  ("add"    (save-excursion (goto-char beg) (insert contents)))
                  ("delete" (delete-region beg end))))
-             (cogru-client--predict-render-all
-              (cogru--predict-delta add-or-delete beg end))))
+             (when-let ((client (cogru-client-get-or-create username)))
+               (setf (cogru-client-path client) file)
+               (setf (cogru-client-point client) beg)
+               (setf (cogru-client-active client) t)
+               (cogru-client--render client))))
           (t (message "Error occurs in `buffer::update' handler")))))
 
 (defun cogru--handle-buffer-save (data)
