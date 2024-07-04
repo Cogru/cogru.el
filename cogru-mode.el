@@ -295,7 +295,8 @@
                       (region_beg   . ,region-beg)
                       (region_end   . ,region-end)
                       (color_cursor . ,color-cursor)
-                      (color_region . ,color-region)))
+                      (color_region . ,color-region)
+                      (md5_contents . ,(md5 (cogru-buffer-string)))))
         (setq cogru--cleared-client-p nil))
       ;; Flag to clean up the client info once before stop
       ;; sending further more data.
