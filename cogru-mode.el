@@ -252,9 +252,8 @@
                     (end           . ,end)             ; End position
                     (contents      . ,contents)))      ; Only used for addition!
       ;; Render prediction!
-      ;; (cogru-client--predict-render-all
-      ;;  (cogru--predict-delta add-or-delete beg end))
-      )))
+      (cogru-client--predict-render-all
+       (cogru--predict-delta add-or-delete beg end)))))
 
 ;;
 ;;; Post

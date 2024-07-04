@@ -348,9 +348,8 @@
                (pcase add-or-delete
                  ("add"    (save-excursion (goto-char beg) (insert contents)))
                  ("delete" (delete-region beg end))))
-             ;; (cogru-client--predict-render-all
-             ;;  (cogru--predict-delta add-or-delete beg end))
-             ))
+             (cogru-client--predict-render-all
+              (cogru--predict-delta add-or-delete beg end))))
           (t (message "Error occurs in `buffer::update' handler")))))
 
 (defun cogru--handle-buffer-save (data)
