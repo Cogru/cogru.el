@@ -171,6 +171,37 @@ If not found, create one instead."
 ;;
 ;;; Rendering (other clients)
 
+(defun cogru--predict-delta (add-or-delete beg end)
+  "Return the predicted DELTA movement."
+  (if (string= add-or-delete "delete")
+      (- beg end)
+    (- end beg)))
+
+(defun cogru-client--predict-render (client delta)
+  "Predict the CLIENT's cursor movement.
+The cursor position and range will be updated based the movement DELTA."
+  ;; First, update the client's data.
+  (when-let* (((not (zerop delta)))
+              (pt (cogru-client-point client))
+              ((<= (point) pt)))  ; only move cursor below
+    (let ((region-beg (cogru-client-region-beg client))
+          (region-end (cogru-client-region-end client)))
+      (setf (cogru-client-point client) (+ pt delta))
+      ;; Only when region is active.
+      (when region-beg
+        (setf (cogru-client-region-beg client) (+ region-beg delta))
+        (setf (cogru-client-region-end client) (+ region-end delta))))
+    ;; Then re-render it.
+    (cogru-client--render client)))
+
+(defun cogru-client--predict-render-all (delta)
+  "Predict render clients by the movement DETLA."
+  (cogru--ensure-connected
+    (unless (zerop delta)
+      (ht-map (lambda (_username client)
+                (cogru-client--predict-render client delta))
+              cogru--clients))))
+
 (defun cogru-client--render (client)
   "Render single client."
   (when (cogru-client-p client)
