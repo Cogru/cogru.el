@@ -116,14 +116,16 @@
 (defun cogru-client--cursor-face (username color)
   "Make custom cursor face by USERNAME and COLOR."
   (let* ((name (intern (format "cogru-%s-cursor" username)))
-         (copied (copy-face 'cursor name)))
+         (copied (or (cogru-get-face name)
+                     (copy-face 'cursor name))))
     (set-face-background copied color)
     copied))
 
 (defun cogru-client--region-face (username color)
   "Make custom region face by USERNAME and COLOR."
   (let* ((name (intern (format "cogru-%s-region" username)))
-         (copied (copy-face 'region name)))
+         (copied (or (cogru-get-face name)
+                     (copy-face 'region name))))
     (set-face-background copied color)
     copied))
 

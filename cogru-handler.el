@@ -349,12 +349,6 @@
                (pcase add-or-delete
                  ("add"    (save-excursion (goto-char beg) (insert contents)))
                  ("delete" (delete-region beg end))))
-             ;; (when-let ((client (cogru-client-get-or-create username))
-             ;;            (pt     beg))
-             ;;   (setf (cogru-client-path client)   file)
-             ;;   (setf (cogru-client-point client)  pt)
-             ;;   (setf (cogru-client-active client) t)
-             ;;   (cogru-client--render client))
              (let ((delta (cogru--predict-delta add-or-delete beg end)))
                (cogru-client--predict-render-all delta))))
           (t (message "Error occurs in `buffer::update' handler")))))

@@ -136,6 +136,13 @@
          ,@body))))
 
 ;;
+;;; Face
+
+(defun cogru-get-face (name)
+  "Return face by NAME."
+  (when (facep name) name))
+
+;;
 ;;; History
 
 (defun cogru-presorted-completions (string pred action completions)
@@ -319,10 +326,11 @@ Replace current buffer contents with STR."
 
 (defun cogru--json-read-from-string (json-string)
   "Read JSON-STRING to JSON object."
-  (with-temp-buffer
-    (insert json-string)
-    (goto-char (point-min))
-    (cogru--json-read-buffer)))
+  (elenv-with-no-redisplay
+    (with-temp-buffer
+      (insert json-string)
+      (goto-char (point-min))
+      (cogru--json-read-buffer))))
 
 (defmacro cogru--handle-request (data failure &rest success)
   "Handle DATA request; run BODY only when return success status."

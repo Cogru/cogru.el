@@ -141,12 +141,13 @@
 
 The arguments DATA is the string data; and FROM and TO are argumenets are
 string position but in bytes."
-  (with-temp-buffer
-    (insert data)
-    (set-buffer-multibyte nil)
-    (let ((from (or from (1- (point-min))))
-          (to   (or to   (1- (point-max)))))
-      (decode-coding-region (1+ from) (1+ to) 'utf-8 t))))
+  (elenv-with-no-redisplay
+    (with-temp-buffer
+      (insert data)
+      (set-buffer-multibyte nil)
+      (let ((from (or from (1- (point-min))))
+            (to   (or to   (1- (point-max)))))
+        (decode-coding-region (1+ from) (1+ to) 'utf-8 t)))))
 
 (defun cogru--process (data)
   "Decode raw DATA."
