@@ -337,7 +337,6 @@
 (defun cogru--handle-buffer-update (data)
   "Handle the `buffer::update' event from DATA."
   (let* ((success       (cogru--success-p data))
-         (username      (ht-get data "username"))
          (file          (cogru--data-file data))
          (add-or-delete (ht-get data "add_or_delete"))
          (beg           (cogru--data-point data "beg"))
