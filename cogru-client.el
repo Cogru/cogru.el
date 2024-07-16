@@ -179,29 +179,29 @@ If not found, create one instead."
       (- beg end)
     (- end beg)))
 
-(defun cogru-client--predict-render (client delta)
+(defun cogru-client--predict-render (client start delta)
   "Predict the CLIENT's cursor movement.
-The cursor position and range will be updated based the movement DELTA."
+The cursor position and range will be updated based the movement DELTA
+after START."
   ;; First, update the client's data.
   (when-let* (((not (zerop delta)))
               (pt (cogru-client-point client))
-              ((<= (point) pt)))  ; only move cursor below
-    (let ((region-beg (cogru-client-region-beg client))
-          (region-end (cogru-client-region-end client)))
-      (setf (cogru-client-point client) (+ pt delta))
+              ((< start pt)))  ; only move cursor below
+    (setf (cogru-client-point client) (+ pt delta))
+    (when-let ((region-beg (cogru-client-region-beg client))
+               (region-end (cogru-client-region-end client)))
       ;; Only when region is active.
-      (when region-beg
-        (setf (cogru-client-region-beg client) (+ region-beg delta))
-        (setf (cogru-client-region-end client) (+ region-end delta))))
+      (setf (cogru-client-region-beg client) (+ region-beg delta))
+      (setf (cogru-client-region-end client) (+ region-end delta)))
     ;; Then re-render it.
     (cogru-client--render client)))
 
-(defun cogru-client--predict-render-all (delta)
-  "Predict render clients by the movement DETLA."
+(defun cogru-client--predict-render-all (start delta)
+  "Predict render clients by the movement DETLA from START."
   (cogru--ensure-connected
     (unless (zerop delta)
       (ht-map (lambda (_username client)
-                (cogru-client--predict-render client delta))
+                (cogru-client--predict-render client start delta))
               cogru--clients))))
 
 (defun cogru-client--render (client)

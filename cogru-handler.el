@@ -349,7 +349,7 @@
                  ("add"    (save-excursion (goto-char beg) (insert contents)))
                  ("delete" (delete-region beg end))))
              (let ((delta (cogru--predict-delta add-or-delete beg end)))
-               (cogru-client--predict-render-all delta))))
+               (cogru-client--predict-render-all beg delta))))
           (t (message "Error occurs in `buffer::update' handler")))))
 
 (defun cogru--handle-buffer-save (data)
