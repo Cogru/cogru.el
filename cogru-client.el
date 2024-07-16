@@ -194,7 +194,7 @@ If not found, create one instead."
               (pt (cogru-client-point client))
               ((<= beg pt))  ; only move cursor below
               (point (if delete-p beg end)))
-    ;;(setf (cogru-client-predicting client) t)  ; set `predicting' flag
+    (setf (cogru-client-predicting client) t)  ; set `predicting' flag
     (setf (cogru-client-point client) (if sender-p
                                           point
                                         (+ pt delta)))
