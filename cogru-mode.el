@@ -248,8 +248,9 @@
                     (beg           . ,beg)             ; Beginning position
                     (end           . ,end)             ; End position
                     (contents      . ,contents)))      ; Only used for addition!
-      (let ((delta (cogru--predict-delta add-or-delete beg end)))
-        (cogru-client--predict-render-all beg delta)))))
+      (let* ((delete-p (string= add-or-delete "delete"))
+             (delta (cogru--predict-delta delete-p beg end)))
+        (cogru-client--predict-render-all nil delete-p beg end delta)))))
 
 ;;
 ;;; Post

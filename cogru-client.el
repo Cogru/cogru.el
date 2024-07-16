@@ -39,6 +39,7 @@
   region-beg region-end
   ;; Control
   active
+  predicting
   ;; Rendering
   frame-name-dialogue  ; The posframe ID string.
   ov-cursor color-cursor
@@ -73,6 +74,13 @@
 (declare-function cogru-mode "cogru-mode.el")
 
 (declare-function cogru-tip-move "cogru-tip.el")
+
+;;
+;;; Util
+
+(defun cogru-client-this-user-p (username)
+  "Return non-nil if USERNAME is the current user."
+  (equal username (cogru-client-username cogru--client)))
 
 ;;
 ;;; Properties
@@ -173,35 +181,42 @@ If not found, create one instead."
 ;;
 ;;; Rendering (other clients)
 
-(defun cogru--predict-delta (add-or-delete beg end)
-  "Return the predicted DELTA movement."
-  (if (string= add-or-delete "delete")
+(defun cogru--predict-delta (delete-p beg end)
+  "Return the predicted DELTA movement by DELETE-P."
+  (if delete-p
       (- beg end)
     (- end beg)))
 
-(defun cogru-client--predict-render (client start delta)
-  "Predict the CLIENT's cursor movement.
-The cursor position and range will be updated based the movement DELTA
-after START."
+(defun cogru-client--predict-render (client sender-p delete-p beg end delta)
+  ""
   ;; First, update the client's data.
   (when-let* (((not (zerop delta)))
               (pt (cogru-client-point client))
-              ((< start pt)))  ; only move cursor below
-    (setf (cogru-client-point client) (+ pt delta))
+              ((<= beg pt))  ; only move cursor below
+              (point (if delete-p beg end)))
+    ;;(setf (cogru-client-predicting client) t)  ; set `predicting' flag
+    (setf (cogru-client-point client) (if sender-p
+                                          point
+                                        (+ pt delta)))
     (when-let ((region-beg (cogru-client-region-beg client))
                (region-end (cogru-client-region-end client)))
       ;; Only when region is active.
-      (setf (cogru-client-region-beg client) (+ region-beg delta))
-      (setf (cogru-client-region-end client) (+ region-end delta)))
+      (setf (cogru-client-region-beg client) (if sender-p
+                                                 point
+                                               (+ region-beg delta)))
+      (setf (cogru-client-region-end client) (if sender-p
+                                                 point
+                                               (+ region-end delta))))
     ;; Then re-render it.
     (cogru-client--render client)))
 
-(defun cogru-client--predict-render-all (start delta)
-  "Predict render clients by the movement DETLA from START."
+(defun cogru-client--predict-render-all (s-username delete-p beg end delta)
+  ""
   (cogru--ensure-connected
     (unless (zerop delta)
-      (ht-map (lambda (_username client)
-                (cogru-client--predict-render client start delta))
+      (ht-map (lambda (username client)
+                (let ((sender-p (equal s-username username)))
+                  (cogru-client--predict-render client sender-p delete-p beg end delta)))
               cogru--clients))))
 
 (defun cogru-client--render (client)
@@ -253,8 +268,7 @@ This is used before getting the new clients' information."
                                     color-cursor color-region
                                     active)
   "Get the client or create one."
-  (when-let (((not (equal username
-                          (cogru-client-username cogru--client))))  ; skip self
+  (when-let (((not (cogru-client-this-user-p username)))  ; skip self
              (client (or (ht-get cogru--clients username)
                          (cogru-client-create :username username
                                               :path path

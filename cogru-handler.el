@@ -301,23 +301,28 @@
   (let* ((clients (ht-get data "clients"))
          (clients (cogru--json-read-from-string clients)))
     (cogru-client-deactivate-all)  ; Deactivate all before set `activate' flag!
-    (mapc (lambda (client)
-            (let* ((username     (ht-get client "username"))
-                   (path         (ht-get client "path"))
+    (mapc (lambda (d-client)
+            (let* ((username     (ht-get d-client "username"))
+                   (path         (ht-get d-client "path"))
                    (path         (cogru-expand-path path))
-                   (color-cursor (ht-get client "color_cursor"))
-                   (color-region (ht-get client "color_region")))
-              ;; We need to enter the file to decode the correct position!
-              (cogru--with-file-buffer path
-                ;; These information are decoded and ready to use!
-                (let* ((point      (cogru--data-point client "point"))
-                       (region-beg (cogru--data-point client "region_beg"))
-                       (region-end (cogru--data-point client "region_end")))
-                  ;;(ic username path point region-beg region-end)
-                  (cogru-client-get-or-create username path
-                                              point region-beg region-end
-                                              color-cursor color-region
-                                              t)))))  ; Set `activate' flag!
+                   (color-cursor (ht-get d-client "color_cursor"))
+                   (color-region (ht-get d-client "color_region"))
+                   (client       (cogru-client-get-or-create username)))
+              ;; Skip the current user.
+              (unless (cogru-client-this-user-p username)
+                ;; We need to enter the file to decode the correct position!
+                (cogru--with-file-buffer path
+                  ;; These information are decoded and ready to use!
+                  (let* ((point      (cogru--data-point d-client "point"))
+                         (region-beg (cogru--data-point d-client "region_beg"))
+                         (region-end (cogru--data-point d-client "region_end")))
+                    ;;(ic username (cogru-client-predicting client))
+                    (if (cogru-client-predicting client)
+                        (setf (cogru-client-predicting client) nil)
+                      (cogru-client-get-or-create username path
+                                                  point region-beg region-end
+                                                  color-cursor color-region
+                                                  t)))))))  ; Set `activate' flag!
           clients)
     (cogru-client--render-all)))
 
@@ -337,6 +342,7 @@
 (defun cogru--handle-buffer-update (data)
   "Handle the `buffer::update' event from DATA."
   (let* ((success       (cogru--success-p data))
+         (username      (ht-get data "username"))
          (file          (cogru--data-file data))
          (add-or-delete (ht-get data "add_or_delete"))
          (beg           (cogru--data-point data "beg"))
@@ -348,8 +354,9 @@
                (pcase add-or-delete
                  ("add"    (save-excursion (goto-char beg) (insert contents)))
                  ("delete" (delete-region beg end))))
-             (let ((delta (cogru--predict-delta add-or-delete beg end)))
-               (cogru-client--predict-render-all beg delta))))
+             (let* ((delete-p (string= add-or-delete "delete"))
+                    (delta (cogru--predict-delta delete-p beg end)))
+               (cogru-client--predict-render-all username delete-p beg end delta))))
           (t (message "Error occurs in `buffer::update' handler")))))
 
 (defun cogru--handle-buffer-save (data)
