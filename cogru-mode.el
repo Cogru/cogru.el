@@ -209,6 +209,9 @@
 (defvar cogru-inhibit-change-hooks nil
   "Set to non-nil to disable all change requests.")
 
+(defvar cogru--modified-this-command-p nil
+  "Set to t when buffer is modified in the current command.")
+
 (defvar cogru--befor-end nil
   "Record the delete end position.")
 
@@ -242,6 +245,7 @@
                                  (cogru-encode-point (nth 2 data))))
                 (contents      (cogru-encode-str (nth 3 data)))
                 (path          (cogru-client-path cogru--client)))
+      (setq cogru--modified-this-command-p t)
       (cogru-send `((method        . "buffer::update")
                     (path          . ,path)            ; What file to update?
                     (add_or_delete . ,add-or-delete)   ; `add' or `delete'
@@ -273,6 +277,9 @@
 
 (defun cogru--send-client-info ()
   "Send the client information."
+  ;; XXX: Cancel timer to make sure the info sent is not run
+  ;; before the next interval.
+  (named-timer-cancel cogru--post-command-timer-name)
   (cogru--client-update-info)  ; Update status before send.
   (cogru--ensure-entered
     (let* ((path         (cogru-client-path         cogru--client))
@@ -291,9 +298,7 @@
                       (region_beg   . ,region-beg)
                       (region_end   . ,region-end)
                       (color_cursor . ,color-cursor)
-                      (color_region . ,color-region)
-                      ;;(md5_contents . ,(md5 (cogru-buffer-string)))
-                      ))
+                      (color_region . ,color-region)))
         (setq cogru--cleared-client-p nil))
       ;; Flag to clean up the client info once before stop
       ;; sending further more data.
@@ -308,14 +313,18 @@
 
 (defun cogru--pre-command ()
   "Pre command hook."
-  (setq cogru--current-buffer (current-buffer)))
+  (setq cogru--current-buffer (current-buffer)
+        cogru--modified-this-command-p nil))  ; reset
 
 (defun cogru--post-command ()
   "Post command hook."
   ;; XXX: Update status for tip? Or just move to tip post command?
   (progn
     (cogru--client-update-info))
-  (cogru--schedule-send-client-info)
+  ;; XXX: Update info immediately after modification.
+  (if cogru--modified-this-command-p
+      (cogru--send-client-info)
+    (cogru--schedule-send-client-info))
   (cogru--cursor-post-command)
   (cogru-tip--post-command))
 
