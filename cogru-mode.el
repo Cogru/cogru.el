@@ -209,9 +209,6 @@
 (defvar cogru-inhibit-change-hooks nil
   "Set to non-nil to disable all change requests.")
 
-(defvar cogru--modified-this-command-p nil
-  "Set to t when buffer is modified in the current command.")
-
 (defvar cogru--befor-end nil
   "Record the delete end position.")
 
@@ -245,7 +242,6 @@
                                  (cogru-encode-point (nth 2 data))))
                 (contents      (cogru-encode-str (nth 3 data)))
                 (path          (cogru-client-path cogru--client)))
-      (setq cogru--modified-this-command-p t)
       (cogru-send `((method        . "buffer::update")
                     (path          . ,path)            ; What file to update?
                     (add_or_delete . ,add-or-delete)   ; `add' or `delete'
@@ -313,18 +309,11 @@
 
 (defun cogru--pre-command ()
   "Pre command hook."
-  (setq cogru--current-buffer (current-buffer)
-        cogru--modified-this-command-p nil))  ; reset
+  (setq cogru--current-buffer (current-buffer)))
 
 (defun cogru--post-command ()
   "Post command hook."
-  ;; XXX: Update status for tip? Or just move to tip post command?
-  (progn
-    (cogru--client-update-info))
-  ;; XXX: Update info immediately after modification.
-  (if cogru--modified-this-command-p
-      (cogru--send-client-info)
-    (cogru--schedule-send-client-info))
+  (cogru--send-client-info)
   (cogru--cursor-post-command)
   (cogru-tip--post-command))
 
