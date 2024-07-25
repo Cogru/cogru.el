@@ -146,7 +146,7 @@
 ;;; Editing
 
 (defun cogru--after-focus (&rest _)
-  "Function runs after focusing the frame."
+  "Function run after focusing the frame."
   (cond ((frame-focus-state)
          (let ((cogru--current-buffer))
            (cogru--window-x-change)))

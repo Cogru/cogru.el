@@ -106,7 +106,7 @@
 ;;; Tip
 
 (defun cogru-client--update-dialogue-frame (client)
-  "Update dialogue."
+  "Update dialogue for CLIENT."
   (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
               (buffer-name (car frame-data))
               (frame (cdr frame-data))
@@ -182,13 +182,13 @@ If not found, create one instead."
 ;;; Rendering (other clients)
 
 (defun cogru--predict-delta (delete-p beg end)
-  "Return the predicted DELTA movement by DELETE-P."
+  "Return the predicted delta movement calculated by DELETE-P, BEG and END."
   (if delete-p
       (- beg end)
     (- end beg)))
 
 (defun cogru-client--predict-render (client sender-p delete-p beg end delta)
-  ""
+  "Predict rendering for CLIENT."
   ;; First, update the client's data.
   (when-let* (((not (zerop delta)))
               (pt (cogru-client-point client))
@@ -211,7 +211,7 @@ If not found, create one instead."
     (cogru-client--render client)))
 
 (defun cogru-client--predict-render-all (s-username delete-p beg end delta)
-  ""
+  "Predict all clients."
   (cogru--ensure-connected
     (unless (zerop delta)
       (ht-map (lambda (username client)

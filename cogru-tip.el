@@ -105,7 +105,7 @@
   "Pop up an tooltip (BUFFER-NAME) depends on the graphic used.
 
 STRING is the content of the toolip.  The location POINT.  TIMEOUT for not
-forever delay."
+forever delay.  The argument HIDE is for internal use."
   (let* ((buffer-name (cogru-tip--buffer-name buffer-name))
          (fringe-width 10)
          (timer-name (intern buffer-name))

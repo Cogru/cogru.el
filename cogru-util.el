@@ -56,7 +56,7 @@
 ;;; Progress
 
 (defmacro coru-with-progress (msg-beg body msg-end)
-  "Progress BODY wrapper with prefix (MSG-START) and suffix (MSG-END) messages."
+  "Progress BODY wrapper with prefix (MSG-BEG) and suffix (MSG-END) messages."
   (declare (indent 0) (debug t))
   `(progn
      (cogru-print ,msg-beg)
@@ -233,7 +233,7 @@ Argument STRING, PRED and ACTION are required parameters."
      (run-hooks 'cogru-after-edit-hook)))
 
 (defun cogru--replace-buffer-contents (str)
-  "Wrap function `replace-buffer-contents'
+  "Wrap the function `replace-buffer-contents'.
 
 Replace current buffer contents with STR."
   (let ((tmp (get-buffer-create " *temp*")))
@@ -333,7 +333,7 @@ Replace current buffer contents with STR."
       (cogru--json-read-buffer))))
 
 (defmacro cogru--handle-request (data failure &rest success)
-  "Handle DATA request; run BODY only when return success status."
+  "Handle DATA request; run SUCCESS or FAILURE depends on the returned status."
   (declare (indent 2))
   `(let ((success (cogru--success-p ,data))
          (msg     (ht-get ,data "message")))
