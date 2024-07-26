@@ -207,7 +207,7 @@
 (defun cogru--handle-pong (data)
   "Handle the `poing' event from DATA."
   (cogru--handle-request data nil
-    (message msg)))
+    (message "Received pong at %s" (ht-get data "timestamp"))))
 
 ;;
 ;;; Response (Room)
