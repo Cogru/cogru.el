@@ -55,7 +55,7 @@
 ;;
 ;;; Progress
 
-(defmacro coru-with-progress (msg-beg body msg-end)
+(defmacro cogru-with-progress (msg-beg body msg-end)
   "Progress BODY wrapper with prefix (MSG-BEG) and suffix (MSG-END) messages."
   (declare (indent 0) (debug t))
   `(progn
@@ -259,7 +259,7 @@ Replace current buffer contents with STR."
 
 (defun cogru--sync-file (filename contents)
   "Sync FILENAME with CONTENTS."
-  (coru-with-progress
+  (cogru-with-progress
     (format "[Cogru] Syncing file %s..." filename)
     (msgu-silent (cogru--write-file filename contents)
                  (cogru--revert-file filename))
@@ -274,7 +274,7 @@ Replace current buffer contents with STR."
   "Sync FILENAME's buffer with CONTENTS."
   (cogru--with-file-buffer filename
     (when (cogru--buffer-diff-p contents)
-      (coru-with-progress
+      (cogru-with-progress
         (format "[Cogru] Syncing buffer %s..." filename)
         (elenv-save-window-excursion
           (cogru--safe-edit

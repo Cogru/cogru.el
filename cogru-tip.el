@@ -76,13 +76,12 @@
 ;;
 ;;; Externals
 
-(defvar cogru-mode)
-(declare-function cogru-mode "cogru-mode.el")
-
 (declare-function cogru-send "cogru.el")
 (declare-function cogru-print "cogru.el")
 
-(defvar cogru-cursor-color)
+(defvar cogru-mode)
+(declare-function cogru-mode "cogru-mode.el")
+(declare-function cogru-cursor-color "cogru-mode.el")
 
 ;;
 ;;; Util
@@ -116,7 +115,7 @@ forever delay.  The argument HIDE is for internal use."
                  :background-color cogru-tip-background-color
                  :foreground-color cogru-tip-foreground-color
                  :internal-border-width 1
-                 :internal-border-color cogru-cursor-color
+                 :internal-border-color (cogru-cursor-color)
                  :left-fringe fringe-width :right-fringe fringe-width
                  :override-parameters
                  (append cogru-tip-frame-parameters

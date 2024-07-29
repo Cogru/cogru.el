@@ -44,14 +44,16 @@
   :type 'hook
   :group 'cogru)
 
-(defcustom cogru-cursor-color (face-background 'cursor)
+(defcustom cogru-cursor-color #'cogru-default-cursor-color
   "Custom cursor color."
-  :type 'string
+  :type '(choice (string :tag "Color in string")
+                 (function :tag "Function returns a color in string"))
   :group 'cogru)
 
-(defcustom cogru-region-color (face-background 'region)
+(defcustom cogru-region-color #'cogru-default-region-color
   "Custom region color."
-  :type 'string
+  :type '(choice (string :tag "Color in string")
+                 (function :tag "Function returns a color in string"))
   :group 'cogru)
 
 (defconst cogru--update-timer-name (intern "*cogru-timer:update*")
@@ -62,12 +64,6 @@
 
 (defvar cogru--cleared-client-p nil
   "Set to non-nil when info is clear on the server.")
-
-(defvar cogru--old-cursor-color (face-background 'cursor)
-  "Old cursor color.")
-
-(defvar cogru--old-region-color (face-background 'region)
-  "Old region color.")
 
 (defvar cogru--current-buffer nil
   "Record the current buffer preventing over syncing.")
@@ -268,8 +264,8 @@
       (setf (cogru-client-point        cogru--client) point)
       (setf (cogru-client-region-beg   cogru--client) region-beg)
       (setf (cogru-client-region-end   cogru--client) region-end)
-      (setf (cogru-client-color-cursor cogru--client) cogru-cursor-color)
-      (setf (cogru-client-color-region cogru--client) cogru-region-color))))
+      (setf (cogru-client-color-cursor cogru--client) (cogru-cursor-color))
+      (setf (cogru-client-color-region cogru--client) (cogru-region-color)))))
 
 (defun cogru--send-client-info ()
   "Send the client information."
@@ -320,15 +316,41 @@
 ;;
 ;;; Cursor & Region
 
+(defun cogru-default-cursor-color ()
+  "Return the default cursor's color."
+  (face-background 'cursor))
+
+(defun cogru-default-region-color ()
+  "Return the default region's color."
+  (face-background 'region))
+
+(defun cogru-cursor-color ()
+  "Return cursor color."
+  (cond ((functionp cogru-cursor-color)
+         (funcall cogru-cursor-color))
+        ((stringp cogru-cursor-color)
+         cogru-cursor-color)
+        (t
+         (cogru-default-cursor-color))))
+
+(defun cogru-region-color ()
+  "Return region color."
+  (cond ((functionp cogru-region-color)
+         (funcall cogru-region-color))
+        ((stringp cogru-region-color)
+         cogru-region-color)
+        (t
+         (cogru-default-region-color))))
+
 (defun cogru--cursor-set ()
   "Set cursor status."
-  (set-cursor-color cogru-cursor-color)
-  (set-face-background 'region cogru-region-color))
+  (set-cursor-color            (cogru-cursor-color))
+  (set-face-background 'region (cogru-region-color)))
 
 (defun cogru--cursor-revert ()
   "Revert cursor status."
-  (set-cursor-color cogru--old-cursor-color)
-  (set-face-background 'region cogru--old-region-color))
+  (set-cursor-color            (cogru-default-cursor-color))
+  (set-face-background 'region (cogru-default-region-color)))
 
 (defun cogru--cursor-post-command ()
   "Post command for cursor."

@@ -67,9 +67,6 @@
 ;;
 ;;; Externals
 
-(defvar cogru-cursor-color)
-(defvar cogru-region-color)
-
 (defvar cogru-mode)
 (declare-function cogru-mode "cogru-mode.el")
 
@@ -188,7 +185,9 @@ If not found, create one instead."
     (- end beg)))
 
 (defun cogru-client--predict-render (client sender-p delete-p beg end delta)
-  "Predict rendering for CLIENT."
+  "Predict rendering for CLIENT.
+
+Arguments SENDER-P, DELETE-P, BEG, END and DELTA are used to do the prediction."
   ;; First, update the client's data.
   (when-let* (((not (zerop delta)))
               (pt (cogru-client-point client))
@@ -211,7 +210,10 @@ If not found, create one instead."
     (cogru-client--render client)))
 
 (defun cogru-client--predict-render-all (s-username delete-p beg end delta)
-  "Predict all clients."
+  "Predict all clients.
+
+Argument S-USERNAME is the sender of this request.  The rest of the arguments
+DELETE-P, BEG, END and DELTA are used to do the prediction."
   (cogru--ensure-connected
     (unless (zerop delta)
       (ht-map (lambda (username client)
@@ -220,7 +222,7 @@ If not found, create one instead."
               cogru--clients))))
 
 (defun cogru-client--render (client)
-  "Render single client."
+  "Render single CLIENT."
   (when (cogru-client-p client)
     (let* ((path (cogru-client-path client))
            (path (cogru-expand-path path)))
@@ -267,7 +269,11 @@ This is used before getting the new clients' information."
                                     point region-beg region-end
                                     color-cursor color-region
                                     active)
-  "Get the client or create one."
+  "Get the client or create one.
+
+Argument USERNAME is the key in `hash-table'.  You can pass in the rest of the
+arguments to override their values; PATH, POINT, REGION-BEG, REGION-END,
+COLOR-CURSOR, COLOR-REGION and ACTIVE."
   (when-let (((not (cogru-client-this-user-p username)))  ; skip self
              (client (or (ht-get cogru--clients username)
                          (cogru-client-create :username username
