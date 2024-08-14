@@ -1,6 +1,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![JCS-ELPA](https://raw.githubusercontent.com/jcs-emacs/badges/master/elpa/v/cogru.svg)](https://jcs-emacs.github.io/jcs-elpa/#/cogru)
 
+<a href="#"><img align="right" src="https://raw.githubusercontent.com/Cogru/cogru/main/etc/logo.png" width="15%"></a>
 # cogru.el
 > Cogru plugin for Emacs
 
