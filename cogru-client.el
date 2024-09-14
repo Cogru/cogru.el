@@ -115,10 +115,8 @@
            (if (equal client cogru--client)
                (cogru-tip-move buffer-name point)
              ;; Else we display border depends on their cursor color.
-             (let* ((username (cogru-client-username client))
-                    (face (cogru-cursor-face username))
-                    (border-color (face-background face)))
-               (cogru-tip-move buffer-name point "green"))))
+             (let ((color (cogru-client-color-cursor client)))
+               (cogru-tip-move buffer-name point color))))
           (t
            (make-frame-invisible frame)))))
 
