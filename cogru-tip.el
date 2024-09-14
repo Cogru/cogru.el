@@ -100,7 +100,8 @@
 (cl-defun cogru-tip-show ( buffer-name string point
                            &key
                            (timeout 300)
-                           (hide t))
+                           (hide t)
+                           internal-border-color)
   "Pop up an tooltip (BUFFER-NAME) depends on the graphic used.
 
 STRING is the content of the toolip.  The location POINT.  TIMEOUT for not
@@ -115,7 +116,8 @@ forever delay.  The argument HIDE is for internal use."
                  :background-color cogru-tip-background-color
                  :foreground-color cogru-tip-foreground-color
                  :internal-border-width 1
-                 :internal-border-color (cogru-cursor-color)
+                 :internal-border-color (or internal-border-color
+                                            (cogru-cursor-color))
                  :left-fringe fringe-width :right-fringe fringe-width
                  :override-parameters
                  (append cogru-tip-frame-parameters
@@ -130,10 +132,13 @@ forever delay.  The argument HIDE is for internal use."
                          (make-frame-invisible frame))))
     frame))
 
-(defun cogru-tip-move (buffer-name point)
+(defun cogru-tip-move ( buffer-name point
+                        &optional border-color)
   "Move the posframe by BUFFER-NAME to POINT."
   (let ((contents (cogru-tip-contents buffer-name)))  ; Retrieved original contents!
-    (cogru-tip-show buffer-name contents point :hide nil)))
+    (cogru-tip-show buffer-name contents point
+                    :hide nil
+                    :internal-border-color border-color)))
 
 ;;
 ;;; Core

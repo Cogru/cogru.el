@@ -111,28 +111,45 @@
     (cond ((and (frame-parameter frame 'cogru-active)  ; only active frame
                 (cogru--point-visible-p point))        ; only when point is visible
            (make-frame-visible frame)
-           (cogru-tip-move buffer-name point))
+           ;; If this client, just move:
+           (if (equal client cogru--client)
+               (cogru-tip-move buffer-name point)
+             ;; Else we display border depends on their cursor color.
+             (let* ((username (cogru-client-username client))
+                    (face (cogru-cursor-face username))
+                    (border-color (face-background face)))
+               (cogru-tip-move buffer-name point "green"))))
           (t
            (make-frame-invisible frame)))))
 
 ;;
 ;;; Faces
 
-(defun cogru-client--cursor-face (username color)
-  "Make custom cursor face by USERNAME and COLOR."
-  (let* ((name (intern (format "cogru-%s-cursor" username)))
+(defun cogru-cursor-face (name)
+  "Return cursor face by NAME."
+  (let* ((name (intern (format "cogru-%s-cursor" name)))
          (copied (or (cogru-get-face name)
                      (copy-face 'cursor name))))
-    (set-face-background copied color)
     copied))
+
+(defun cogru-region-face (name)
+  "Return region face by NAME."
+  (let* ((name (intern (format "cogru-%s-region" name)))
+         (copied (or (cogru-get-face name)
+                     (copy-face 'region name))))
+    copied))
+
+(defun cogru-client--cursor-face (username color)
+  "Make custom cursor face by USERNAME and COLOR."
+  (let ((face (cogru-cursor-face username)))
+    (set-face-background face color)
+    face))
 
 (defun cogru-client--region-face (username color)
   "Make custom region face by USERNAME and COLOR."
-  (let* ((name (intern (format "cogru-%s-region" username)))
-         (copied (or (cogru-get-face name)
-                     (copy-face 'region name))))
-    (set-face-background copied color)
-    copied))
+  (let ((face (cogru-region-face username)))
+    (set-face-background face color)
+    face))
 
 ;;
 ;;; Overlay

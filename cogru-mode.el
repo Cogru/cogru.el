@@ -316,12 +316,17 @@
 ;;
 ;;; Cursor & Region
 
+(defvar cogru-default-cursor-color (face-background 'cursor)
+  "Old cursor color to revert to.")
+(defvar cogru-default-region-color (face-background 'region)
+  "Old region color to revert to.")
+
 (defun cogru-default-cursor-color ()
-  "Return the default cursor's color."
+  "Return the default cursor color."
   (face-background 'cursor))
 
 (defun cogru-default-region-color ()
-  "Return the default region's color."
+  "Return the default region color."
   (face-background 'region))
 
 (defun cogru-cursor-color ()
@@ -349,8 +354,8 @@
 
 (defun cogru--cursor-revert ()
   "Revert cursor status."
-  (set-cursor-color            (cogru-default-cursor-color))
-  (set-face-background 'region (cogru-default-region-color)))
+  (set-cursor-color            cogru-default-cursor-color)
+  (set-face-background 'region cogru-default-region-color))
 
 (defun cogru--cursor-post-command ()
   "Post command for cursor."
