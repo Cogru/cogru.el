@@ -69,6 +69,7 @@
 
 (defvar cogru-mode)
 (declare-function cogru-mode "cogru-mode.el")
+(declare-function cogru-cursor-color "cogru-mode.el")
 
 (declare-function cogru-tip-move "cogru-tip.el")
 
