@@ -98,10 +98,10 @@
 ;;; Core
 
 (cl-defun cogru-tip-show ( buffer-name string point
+                           border-color
                            &key
                            (timeout 300)
-                           (hide t)
-                           internal-border-color)
+                           (hide t))
   "Pop up an tooltip (BUFFER-NAME) depends on the graphic used.
 
 STRING is the content of the toolip.  The location POINT.  TIMEOUT for not
@@ -116,8 +116,7 @@ forever delay.  The argument HIDE is for internal use."
                  :background-color cogru-tip-background-color
                  :foreground-color cogru-tip-foreground-color
                  :internal-border-width 1
-                 :internal-border-color (or internal-border-color
-                                            (cogru-cursor-color))
+                 :internal-border-color border-color
                  :left-fringe fringe-width :right-fringe fringe-width
                  :override-parameters
                  (append cogru-tip-frame-parameters
@@ -132,13 +131,11 @@ forever delay.  The argument HIDE is for internal use."
                          (make-frame-invisible frame))))
     frame))
 
-(defun cogru-tip-move ( buffer-name point
-                        &optional border-color)
+(defun cogru-tip-move ( buffer-name point border-color)
   "Move the posframe by BUFFER-NAME to POINT."
   (let ((contents (cogru-tip-contents buffer-name)))  ; Retrieved original contents!
-    (cogru-tip-show buffer-name contents point
-                    :hide nil
-                    :internal-border-color border-color)))
+    (cogru-tip-show buffer-name contents point border-color
+                    :hide nil)))
 
 ;;
 ;;; Core
@@ -156,7 +153,7 @@ forever delay.  The argument HIDE is for internal use."
   (let* ((username (cogru-client-username client))
          (buffer-name (format "say::%s" username))
          (point (cogru-client-point client))
-         (frame (cogru-tip-show buffer-name msg point)))
+         (frame (cogru-tip-show buffer-name msg point (cogru-cursor-color))))
     (setf (cogru-client-frame-name-dialogue client) (cons buffer-name frame))))
 
 (provide 'cogru-tip)

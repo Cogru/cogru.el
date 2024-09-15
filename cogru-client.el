@@ -107,16 +107,14 @@
   (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
               (buffer-name (car frame-data))
               (frame (cdr frame-data))
+              ((frame-live-p frame))
               (point (cogru-client-point client)))
     (cond ((and (frame-parameter frame 'cogru-active)  ; only active frame
                 (cogru--point-visible-p point))        ; only when point is visible
            (make-frame-visible frame)
-           ;; If this client, just move:
-           (if (equal client cogru--client)
-               (cogru-tip-move buffer-name point)
-             ;; Else we display border depends on their cursor color.
-             (let ((color (cogru-client-color-cursor client)))
-               (cogru-tip-move buffer-name point color))))
+           (cogru-tip-move buffer-name point (if (equal client cogru--client)
+                                                 (cogru-cursor-color)
+                                               (cogru-client-color-cursor client))))
           (t
            (make-frame-invisible frame)))))
 
@@ -249,7 +247,8 @@ DELETE-P, BEG, END and DELTA are used to do the prediction."
              (cogru-client--update-cursor-ov client))
             (t
              (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
-                         (frame (cdr frame-data)))
+                         (frame (cdr frame-data))
+                         ((frame-live-p frame)))
                (make-frame-invisible frame))
              (cogru-delete-overlay (cogru-client-ov-cursor client))
              (cogru-delete-overlay (cogru-client-ov-region client)))))))
