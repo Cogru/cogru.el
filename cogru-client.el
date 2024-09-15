@@ -107,7 +107,6 @@
   (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
               (buffer-name (car frame-data))
               (frame (cdr frame-data))
-              ((frame-live-p frame))
               (point (cogru-client-point client)))
     (cond ((and (frame-parameter frame 'cogru-active)  ; only active frame
                 (cogru--point-visible-p point))        ; only when point is visible
@@ -247,8 +246,7 @@ DELETE-P, BEG, END and DELTA are used to do the prediction."
              (cogru-client--update-cursor-ov client))
             (t
              (when-let* ((frame-data (cogru-client-frame-name-dialogue client))
-                         (frame (cdr frame-data))
-                         ((frame-live-p frame)))
+                         (frame (cdr frame-data)))
                (make-frame-invisible frame))
              (cogru-delete-overlay (cogru-client-ov-cursor client))
              (cogru-delete-overlay (cogru-client-ov-region client)))))))

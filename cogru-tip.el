@@ -132,7 +132,9 @@ forever delay.  The argument HIDE is for internal use."
     frame))
 
 (defun cogru-tip-move ( buffer-name point border-color)
-  "Move the posframe by BUFFER-NAME to POINT."
+  "Move the posframe by BUFFER-NAME to POINT.
+
+The argument BORDER-COLOR is the border color around the dialogue."
   (let ((contents (cogru-tip-contents buffer-name)))  ; Retrieved original contents!
     (cogru-tip-show buffer-name contents point border-color
                     :hide nil)))
