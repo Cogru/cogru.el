@@ -1,3 +1,5 @@
+;; -*- mode: eask; lexical-binding: t -*-
+
 (package "cogru"
          "0.1.0"
          "Cogru plugin for real-time collaborative editing")
